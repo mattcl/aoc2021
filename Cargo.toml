@@ -1,0 +1,20 @@
+[package]
+name = "aoc"
+version = "0.1.0"
+authors = ["Matt Chun-Lum <matt@questionable.engineering>"]
+edition = "2018"
+description = "Advent of code, 2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1"
+itertools = "0.10"
+rayon = "1.5"
+
+[dev-dependencies]
+criterion = "0.3.5"
+
+[[bench]]
+name = "bench_main"
+harness = false

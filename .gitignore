@@ -1,0 +1,8 @@
+/target
+Cargo.lock
+*.sw[a-z]
+spirit.toml
+heaptrack.*
+perf.*
+flamegraph*
+*.svg
