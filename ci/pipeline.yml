@@ -1,0 +1,16 @@
+resources:
+  - name: repo
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/mattcl/aoc2021.git
+
+jobs:
+  - name: build
+    plan:
+      - get: repo
+        trigger: true
+      - task: check-and-compile
+        file: repo/ci/tasks/check-and-compile.yml
+      - task: run-solutions
+        file: repo/ci/tasks/run-solutions.yml
