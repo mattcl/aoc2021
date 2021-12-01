@@ -1,0 +1,26 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: rust
+    tag: 1.56
+
+inputs:
+  - name: artifacts
+
+caches:
+  # yeah, I'm not sure how I feel about caching the registry like this,
+  # but concourse only allows relative paths instead of absolute ones
+  - path: ../../../usr/local/cargo/registry
+
+outputs:
+  - name: benchmarks
+    path: artifacts/target/criterion
+
+run:
+  dir: artifacts
+  path: /bin/sh
+  args:
+    - "-c"
+    - |
+      cargo bench

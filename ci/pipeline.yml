@@ -14,3 +14,5 @@ jobs:
         file: repo/ci/tasks/check-and-compile.yml
       - task: run-solutions
         file: repo/ci/tasks/run-solutions.yml
+      - task: run-benchmarks
+        file: repo/ci/tasks/run-benchmarks.yml
