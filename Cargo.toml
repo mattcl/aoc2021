@@ -9,6 +9,7 @@ description = "Advent of code, 2021"
 
 [dependencies]
 anyhow = "1"
+auto_ops = "0.3.0"
 itertools = "0.10"
 rayon = "1.5"
 
