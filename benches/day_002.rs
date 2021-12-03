@@ -6,13 +6,12 @@ use criterion::{criterion_group, Criterion};
 
 pub fn bench(c: &mut Criterion) {
     let mut group = c.benchmark_group("002 dive!");
-    let lines = load_input("002").expect("could not load input");
-    let commands = parse_input(&lines).expect("invalid input");
-
-    let sub = Submarine::new();
-    let aimable_sub = AimableSubmarine::new();
-
     group.bench_function("part 1 submarine movement", |b| {
+        let lines = load_input("002").expect("could not load input");
+        let commands = parse_input(&lines).expect("invalid input");
+
+        let sub = Submarine::new();
+
         b.iter(|| {
             let mut sub = sub.clone();
             for command in &commands {
@@ -22,8 +21,13 @@ pub fn bench(c: &mut Criterion) {
         })
     });
     group.bench_function("part 2 aimable submarine movement", |b| {
+        let lines = load_input("002").expect("could not load input");
+        let commands = parse_input(&lines).expect("invalid input");
+
+        let sub = AimableSubmarine::new();
+
         b.iter(|| {
-            let mut sub = aimable_sub.clone();
+            let mut sub = sub.clone();
             for command in &commands {
                 sub.execute(command);
             }

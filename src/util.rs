@@ -1,3 +1,4 @@
+use std::env::{self, VarError};
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -5,11 +6,30 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, bail, Result};
 
-pub fn load_input(day: &str) -> Result<Vec<String>> {
+/// Will attempt to load input from the specified AOC_INPUT file, otherwise
+/// will default to loading the corresponding input file for the day given by
+/// `default_day`.
+///
+/// ```no_run
+/// use aoc::util::load_input;
+/// let lines: Vec<String> = load_input("002").expect("could not load input");
+/// ```
+pub fn load_input(default_day: &str) -> Result<Vec<String>> {
     //
     // examples/003_toboggan-trajectory/input
     //
-    load_named_input(day, "input")
+    load_external_input("AOC_INPUT")
+        .or_else(|e| {
+            // If we errored because the var was not set, just return the
+            // the default. Otherwise, we want to propagate the error because
+            // it means that the var *was* set but we couldn't open/load the
+            // file.
+            if e.is::<VarError>() {
+                load_named_input(default_day, "input")
+            } else {
+                Err(e)
+            }
+        })
 }
 
 pub fn load_named_input(day: &str, name: &str) -> Result<Vec<String>> {
@@ -37,6 +57,11 @@ pub fn load_named_input(day: &str, name: &str) -> Result<Vec<String>> {
         "Could not find or load input for {}: '{}'",
         day, name
     ));
+}
+
+pub fn load_external_input(key: &str) -> Result<Vec<String>> {
+    let path = env::var(key)?;
+    load_lines(&path)
 }
 
 pub fn load_lines(file: &str) -> Result<Vec<String>> {
