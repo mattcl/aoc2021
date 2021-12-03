@@ -88,7 +88,7 @@ impl Diagnostic {
 
         // This isn't so much recurse as "create a new Diagnositc with the
         // remaining values then just run filter_values on that"
-        let tmp = Diagnostic::new(self.num_bits, new_set);
+        let tmp = Diagnostic::new(bit as usize, new_set);
         tmp.filter_values(bit - 1, use_gamma)
     }
 }
