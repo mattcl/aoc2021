@@ -1,0 +1,33 @@
+#!/bin/sh
+set -e
+# find all examples names
+examples=$(find examples -maxdepth 1 -type d -regextype sed -regex ".*/[0-9]\+_.*" -exec basename {} \;)
+
+# make new location
+target="aoc2021-mattcl"
+mkdir -p $target
+
+# copy bins to location
+for f in $examples
+do
+  echo "Copying ${f}"
+  cp "target/release/examples/${f}" "${target}/"
+done
+
+echo "Generating readme"
+cat > "${target}/README.md" <<- "EOM"
+## To run
+```
+AOC_INPUT=<PATH> ./BIN_NAME
+```
+Wheare `AOC_INPUT` is a path to the input file for that specific problem
+EOM
+
+# tar bins
+echo "Making tarball"
+tar -czvf "${target}.tar.gz" $target
+
+
+# cleanup
+echo "Removing working directory"
+rm -rf $target
