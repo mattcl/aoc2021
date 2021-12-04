@@ -5,7 +5,14 @@ examples=$(find examples -maxdepth 1 -type d -regextype sed -regex ".*/[0-9]\+_.
 
 # make new location
 target="aoc2021-mattcl"
+archive="${target}.tar.gz"
 mkdir -p $target
+
+# remove old tar.gz
+if [ -f $archive ]; then
+  echo "Removing previous archive"
+  rm $archive
+fi
 
 # copy bins to location
 for f in $examples
@@ -25,8 +32,7 @@ EOM
 
 # tar bins
 echo "Making tarball"
-tar -czvf "${target}.tar.gz" $target
-
+tar -czvf $archive $target
 
 # cleanup
 echo "Removing working directory"
