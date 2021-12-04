@@ -25,16 +25,14 @@ impl FromStr for Sequence {
 
 #[derive(Debug, Clone, Default)]
 struct Cell {
-    pub value: i64,
     pub marked: bool,
     pub row: usize,
     pub col: usize,
 }
 
 impl Cell {
-    pub fn new(value: i64, row: usize, col: usize) -> Self {
+    pub fn new(row: usize, col: usize) -> Self {
         Self {
-            value,
             marked: false,
             row,
             col,
@@ -61,6 +59,7 @@ pub struct Board {
 impl Board {
     pub fn attempt_to_mark(&mut self, num: i64) {
         if let Entry::Occupied(entry) = self.values.entry(num).and_modify(|e| e.mark()) {
+            // This is to avoid the second mutable borrow
             let cell = entry.get();
             let row = cell.row;
             let col = cell.col;
@@ -71,11 +70,10 @@ impl Board {
     }
 
     pub fn marked(&self, value: i64) -> bool {
-        if let Some(cell) = self.values.get(&value) {
-            cell.marked()
-        } else {
-            false
-        }
+        self.values
+            .get(&value)
+            .and_then(|cell| Some(cell.marked()))
+            .unwrap_or(false)
     }
 
     pub fn unmarked_sum(&self) -> i64 {
@@ -144,7 +142,7 @@ impl TryFrom<&[String]> for Board {
             ordering
                 .iter()
                 .enumerate()
-                .map(|(i, v)| (*v, Cell::new(*v, i / side, i % side))),
+                .map(|(i, v)| (*v, Cell::new(i / side, i % side))),
         );
 
         Ok(Board {
