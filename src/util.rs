@@ -18,18 +18,17 @@ pub fn load_input(default_day: &str) -> Result<Vec<String>> {
     //
     // examples/003_toboggan-trajectory/input
     //
-    load_external_input("AOC_INPUT")
-        .or_else(|e| {
-            // If we errored because the var was not set, just return the
-            // the default. Otherwise, we want to propagate the error because
-            // it means that the var *was* set but we couldn't open/load the
-            // file.
-            if e.is::<VarError>() {
-                load_named_input(default_day, "input")
-            } else {
-                Err(e)
-            }
-        })
+    load_external_input("AOC_INPUT").or_else(|e| {
+        // If we errored because the var was not set, just return the
+        // the default. Otherwise, we want to propagate the error because
+        // it means that the var *was* set but we couldn't open/load the
+        // file.
+        if e.is::<VarError>() {
+            load_named_input(default_day, "input")
+        } else {
+            Err(e)
+        }
+    })
 }
 
 pub fn load_named_input(day: &str, name: &str) -> Result<Vec<String>> {

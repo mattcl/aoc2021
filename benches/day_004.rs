@@ -29,7 +29,9 @@ pub fn bench(c: &mut Criterion) {
 
         b.iter(|| {
             let mut runner = runner.clone();
-            runner.par_find_last_scoring().expect("Could not find a winner");
+            runner
+                .par_find_last_scoring()
+                .expect("Could not find a winner");
         })
     });
     group.finish();

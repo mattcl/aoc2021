@@ -1,29 +1,25 @@
-use std::collections::HashMap;
 use std::collections::hash_map::Entry;
-use std::{
-    convert::TryFrom,
-    iter::FromIterator,
-    str::FromStr,
-    num::ParseIntError
-};
+use std::collections::HashMap;
+use std::{convert::TryFrom, iter::FromIterator, num::ParseIntError, str::FromStr};
 
 use anyhow::{anyhow, bail, Result};
 use rayon::prelude::*;
 
 #[derive(Debug, Clone, Default)]
 pub struct Sequence {
-    values: Vec<i64>
+    values: Vec<i64>,
 }
 
 impl FromStr for Sequence {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self> {
-        let parsed: Vec<i64> = s.split(",").map(|sub| sub.parse()).collect::<Result<Vec<i64>, ParseIntError>>()?;
+        let parsed: Vec<i64> = s
+            .split(",")
+            .map(|sub| sub.parse())
+            .collect::<Result<Vec<i64>, ParseIntError>>()?;
 
-        Ok(Sequence {
-            values: parsed,
-        })
+        Ok(Sequence { values: parsed })
     }
 }
 
@@ -41,7 +37,7 @@ impl Cell {
             value,
             marked: false,
             row,
-            col
+            col,
         }
     }
 
@@ -83,7 +79,10 @@ impl Board {
     }
 
     pub fn unmarked_sum(&self) -> i64 {
-        self.values.iter().map(|(v, cell)| if !cell.marked() { *v } else { 0 }).sum()
+        self.values
+            .iter()
+            .map(|(v, cell)| if !cell.marked() { *v } else { 0 })
+            .sum()
     }
 
     pub fn won(&self) -> bool {
@@ -131,31 +130,36 @@ impl TryFrom<&[String]> for Board {
 
         let ordering: Vec<i64> = value
             .iter()
-            .map(|v| v.split_whitespace().map(|s| s.parse()).collect::<Vec<std::result::Result<i64, ParseIntError>>>())
+            .map(|v| {
+                v.split_whitespace()
+                    .map(|s| s.parse())
+                    .collect::<Vec<std::result::Result<i64, ParseIntError>>>()
+            })
             .flatten()
             .collect::<std::result::Result<Vec<i64>, ParseIntError>>()?;
 
         let side = (ordering.len() as f64).sqrt() as usize;
 
         let values = HashMap::from_iter(
-            ordering.iter().enumerate().map(|(i, v)| (*v, Cell::new(*v, i / side, i % side)))
+            ordering
+                .iter()
+                .enumerate()
+                .map(|(i, v)| (*v, Cell::new(*v, i / side, i % side))),
         );
 
-        Ok(
-            Board {
-                side,
-                values,
-                ordering,
-                won: false,
-            }
-        )
+        Ok(Board {
+            side,
+            values,
+            ordering,
+            won: false,
+        })
     }
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct Runner {
     sequence: Sequence,
-    boards: Vec<Board>
+    boards: Vec<Board>,
 }
 
 impl Runner {
@@ -190,7 +194,8 @@ impl Runner {
 
     pub fn par_find_last_scoring(&mut self) -> Result<i64> {
         let seq = self.sequence.values.clone();
-        let mut res = self.boards
+        let mut res = self
+            .boards
             .par_iter_mut()
             .filter_map(|board| {
                 for (i, v) in seq.iter().enumerate() {
@@ -204,7 +209,9 @@ impl Runner {
             .collect::<Vec<(usize, i64)>>();
         res.sort_by(|a, b| a.0.cmp(&b.0));
 
-        res.last().and_then(|(_, score)| Some(*score)).ok_or_else(|| anyhow!("Could not determine last winner because list is empty"))
+        res.last()
+            .and_then(|(_, score)| Some(*score))
+            .ok_or_else(|| anyhow!("Could not determine last winner because list is empty"))
     }
 }
 
@@ -213,7 +220,9 @@ impl TryFrom<&Vec<String>> for Runner {
 
     fn try_from(value: &Vec<String>) -> Result<Self> {
         let mut chunks = value.split(|elem| elem.is_empty());
-        let first = chunks.next().ok_or_else(|| anyhow!("Invalid input missing sequence"))?;
+        let first = chunks
+            .next()
+            .ok_or_else(|| anyhow!("Invalid input missing sequence"))?;
         if first.is_empty() {
             bail!("Invalid input, missing sequence despite chunk present");
         }
@@ -221,26 +230,26 @@ impl TryFrom<&Vec<String>> for Runner {
         let sequence = Sequence::from_str(&first[0])?;
 
         // the remaining chunks should all be boards
-        let boards = chunks.map(|chunk| Board::try_from(chunk)).collect::<Result<Vec<Board>>>()?;
+        let boards = chunks
+            .map(|chunk| Board::try_from(chunk))
+            .collect::<Result<Vec<Board>>>()?;
 
-        Ok(Runner {
-            sequence,
-            boards
-        })
+        Ok(Runner { sequence, boards })
     }
 }
 
 #[cfg(test)]
 mod tests {
     mod sequence {
-        use crate::util::test_input;
-
         use super::super::*;
 
         #[test]
         fn creation() {
             let input = "7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1";
-            let expected: Vec<i64> = vec![7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1];
+            let expected: Vec<i64> = vec![
+                7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8,
+                19, 3, 26, 1,
+            ];
 
             let s = Sequence::from_str(input).expect("Could not make board");
 
@@ -257,13 +266,15 @@ mod tests {
 
         #[test]
         fn marked() {
-            let input = test_input("
+            let input = test_input(
+                "
                 14 21 17 24  4
                 10 16 15  9 19
                 18  8 23 26 20
                 22 11 13  6  5
                  2  0 12  3  7
-                ");
+                ",
+            );
             let slice = input.as_slice();
             let mut board = Board::try_from(slice).expect("Could not make board");
             assert_eq!(board.marked(9), false);
@@ -275,13 +286,15 @@ mod tests {
 
         #[test]
         fn unmarked_sum() {
-            let input = test_input("
+            let input = test_input(
+                "
                 14 21 17 24  4
                 10 16 15  9 19
                 18  8 23 26 20
                 22 11 13  6  5
                  2  0 12  3  7
-                ");
+                ",
+            );
             let slice = input.as_slice();
             let mut board = Board::try_from(slice).expect("Could not make board");
             for v in vec![7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24] {
@@ -301,7 +314,8 @@ mod tests {
         use std::convert::TryFrom;
 
         fn input() -> Vec<String> {
-            test_input("
+            test_input(
+                "
                 7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
                 22 13 17 11  0
@@ -321,7 +335,8 @@ mod tests {
                 18  8 23 26 20
                 22 11 13  6  5
                  2  0 12  3  7
-                ")
+                ",
+            )
         }
 
         #[test]
@@ -347,7 +362,9 @@ mod tests {
             let input = input();
 
             let mut runner = Runner::try_from(&input).expect("Could not construct runner");
-            let score = runner.par_find_last_scoring().expect("Could not find last scoring");
+            let score = runner
+                .par_find_last_scoring()
+                .expect("Could not find last scoring");
             assert_eq!(score, 1924);
         }
     }
