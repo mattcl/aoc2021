@@ -15,7 +15,7 @@ impl FromStr for Sequence {
 
     fn from_str(s: &str) -> Result<Self> {
         let parsed: Vec<i64> = s
-            .split(",")
+            .split(',')
             .map(|sub| sub.parse())
             .collect::<Result<Vec<i64>, ParseIntError>>()?;
 
@@ -72,7 +72,7 @@ impl Board {
     pub fn marked(&self, value: i64) -> bool {
         self.values
             .get(&value)
-            .and_then(|cell| Some(cell.marked()))
+            .map(|cell| cell.marked())
             .unwrap_or(false)
     }
 
@@ -208,7 +208,7 @@ impl Runner {
         res.sort_by(|a, b| a.0.cmp(&b.0));
 
         res.last()
-            .and_then(|(_, score)| Some(*score))
+            .map(|(_, score)| *score)
             .ok_or_else(|| anyhow!("Could not determine last winner because list is empty"))
     }
 }
@@ -229,7 +229,7 @@ impl TryFrom<&Vec<String>> for Runner {
 
         // the remaining chunks should all be boards
         let boards = chunks
-            .map(|chunk| Board::try_from(chunk))
+            .map(Board::try_from)
             .collect::<Result<Vec<Board>>>()?;
 
         Ok(Runner { sequence, boards })

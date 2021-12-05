@@ -43,7 +43,7 @@ pub fn load_named_input(day: &str, name: &str) -> Result<Vec<String>> {
             && entry
                 .file_name()
                 .into_string()
-                .or_else(|_| Err(anyhow!("Could not convert filename to string")))?
+                .map_err(|_| anyhow!("Could not convert filename to string"))?
                 .starts_with(day)
         {
             if let Some(file) = path.join(name).to_str() {

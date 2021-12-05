@@ -12,7 +12,7 @@ pub struct Diagnostic {
 
 impl Diagnostic {
     pub fn new(num_bits: usize, values: Vec<u64>) -> Self {
-        let mut bits = vec![0 as i64; num_bits];
+        let mut bits = vec![0_i64; num_bits];
         let base: u64 = 2;
         let masks: Vec<u64> = (0..bits.len()).rev().map(|i| base.pow(i as u32)).collect();
 

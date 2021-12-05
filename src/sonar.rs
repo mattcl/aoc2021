@@ -10,10 +10,8 @@ impl Report {
         let mut count = 0;
         let mut prev = 0;
         for (idx, d) in self.depths.iter().enumerate() {
-            if idx > 0 {
-                if prev < *d {
-                    count += 1;
-                }
+            if idx > 0 && prev < *d {
+                count += 1;
             }
             prev = *d;
         }

@@ -13,7 +13,7 @@ impl FromStr for Command {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self> {
-        let mut parts = s.split(" ");
+        let mut parts = s.split(' ');
         let name = parts
             .next()
             .ok_or_else(|| anyhow!("Missing command name in '{}'", s))?;

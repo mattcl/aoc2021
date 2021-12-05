@@ -1,6 +1,6 @@
-use std::convert::TryFrom;
 use std::num::ParseIntError;
 use std::str::FromStr;
+use std::{cmp::Ordering, convert::TryFrom};
 
 use anyhow::{anyhow, bail, Result};
 use itertools::Itertools;
@@ -23,7 +23,7 @@ impl FromStr for Point {
 
     fn from_str(s: &str) -> Result<Self> {
         let values: Vec<i64> = s
-            .split(",")
+            .split(',')
             .map(|v| v.parse())
             .collect::<std::result::Result<Vec<i64>, ParseIntError>>()?;
         if values.len() != 2 {
@@ -57,20 +57,16 @@ impl Line {
 
     pub fn points(&self) -> Vec<Point> {
         // this works if we only consider vertical or horizontal
-        let xadj = if self.start.x > self.end.x {
-            -1
-        } else if self.start.x == self.end.x {
-            0
-        } else {
-            1
+        let xadj = match self.start.x.cmp(&self.end.x) {
+            Ordering::Greater => -1,
+            Ordering::Equal => 0,
+            Ordering::Less => 1,
         };
 
-        let yadj = if self.start.y > self.end.y {
-            -1
-        } else if self.start.y == self.end.y {
-            0
-        } else {
-            1
+        let yadj = match self.start.y.cmp(&self.end.y) {
+            Ordering::Greater => -1,
+            Ordering::Equal => 0,
+            Ordering::Less => 1,
         };
 
         let count = (self.start.x - self.end.x)
