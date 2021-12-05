@@ -27,7 +27,7 @@ cat > "${target}/README.md" <<- "EOM"
 ```
 AOC_INPUT=<PATH> ./BIN_NAME
 ```
-Wheare `AOC_INPUT` is a path to the input file for that specific problem
+Where `AOC_INPUT` is a path to the input file for that specific problem
 EOM
 
 # tar bins

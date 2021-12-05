@@ -55,10 +55,6 @@ impl Line {
         (self.start.x - self.end.x).abs() == (self.start.y - self.end.y).abs()
     }
 
-    pub fn slope(&self) -> f64 {
-        (self.end.y - self.start.y) as f64 / (self.end.x - self.start.x) as f64
-    }
-
     pub fn points(&self) -> Vec<Point> {
         // this works if we only consider vertical or horizontal
         let xadj = if self.start.x > self.end.x {
