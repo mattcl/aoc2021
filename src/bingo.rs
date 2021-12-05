@@ -195,20 +195,21 @@ impl Runner {
         let mut res = self
             .boards
             .par_iter_mut()
-            .filter_map(|board| {
+            .enumerate()
+            .filter_map(|(b_idx, board)| {
                 for (i, v) in seq.iter().enumerate() {
                     board.attempt_to_mark(*v);
                     if board.won() {
-                        return Some((i, board.unmarked_sum() * v));
+                        return Some((i, b_idx));
                     }
                 }
                 None
             })
-            .collect::<Vec<(usize, i64)>>();
+            .collect::<Vec<(usize, usize)>>();
         res.sort_by(|a, b| a.0.cmp(&b.0));
 
         res.last()
-            .map(|(_, score)| *score)
+            .map(|(s_idx, b_idx)| self.sequence.values[*s_idx] * self.boards[*b_idx].unmarked_sum())
             .ok_or_else(|| anyhow!("Could not determine last winner because list is empty"))
     }
 }
