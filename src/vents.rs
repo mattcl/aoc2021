@@ -1,8 +1,9 @@
-use anyhow::{anyhow, bail, Result};
 use std::convert::TryFrom;
 use std::num::ParseIntError;
 use std::str::FromStr;
 
+use anyhow::{anyhow, bail, Result};
+use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash)]
@@ -171,6 +172,7 @@ impl TryFrom<&Vec<String>> for Grid {
         let lines = input
             .iter()
             .map(|l| Line::from_str(l))
+            .filter_ok(|l| !l.is_unmappable())
             .collect::<Result<Vec<Line>>>()?;
 
         Ok(Grid::new(lines))
