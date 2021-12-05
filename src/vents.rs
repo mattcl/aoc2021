@@ -3,7 +3,7 @@ use std::str::FromStr;
 use std::{cmp::Ordering, convert::TryFrom};
 
 use anyhow::{anyhow, bail, Result};
-use itertools::Itertools;
+use rayon::prelude::*;
 use rustc_hash::FxHashMap;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash)]
@@ -162,9 +162,15 @@ impl TryFrom<&Vec<String>> for Grid {
 
     fn try_from(input: &Vec<String>) -> Result<Self> {
         let lines = input
-            .iter()
+            .par_iter()
             .map(|l| Line::from_str(l))
-            .filter_ok(|l| !l.is_unmappable())
+            .filter(|l| {
+                if let Ok(ref line) = l {
+                    !line.is_unmappable()
+                } else {
+                    true
+                }
+            })
             .collect::<Result<Vec<Line>>>()?;
 
         Ok(Grid::new(lines))
