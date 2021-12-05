@@ -1,9 +1,9 @@
-use aoc::{bingo::Runner, util::load_input};
+use aoc::{bingo::{FastBoard, Runner}, util::load_input};
 use std::convert::TryFrom;
 
 fn main() {
     let lines = load_input("004").expect("could not load input");
-    let mut runner = Runner::try_from(&lines).expect("Input was invalid");
+    let mut runner: Runner<FastBoard> = Runner::try_from(lines).expect("Input was invalid");
     let mut runner2 = runner.clone();
 
     println!(
