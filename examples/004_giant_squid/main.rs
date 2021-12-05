@@ -10,8 +10,11 @@ fn main() {
         runner.play().expect("Could not find a winner")
     );
 
-    let score = runner
-        .par_find_last_scoring()
+    let scores = runner
+        .play_all();
+
+    let score = scores
+        .last()
         .expect("Could not find the last winner");
     println!("part 2: {}", score);
 }
