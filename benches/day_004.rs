@@ -1,4 +1,7 @@
-use aoc::{bingo::{Runner, Board, FastBoard}, util::load_input};
+use aoc::{
+    bingo::{Board, FastBoard, Runner},
+    util::load_input,
+};
 use criterion::{criterion_group, Criterion};
 
 use std::convert::TryFrom;

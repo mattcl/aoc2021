@@ -1,4 +1,7 @@
-use aoc::{bingo::{FastBoard, Runner}, util::load_input};
+use aoc::{
+    bingo::{FastBoard, Runner},
+    util::load_input,
+};
 use std::convert::TryFrom;
 
 fn main() {
@@ -10,11 +13,8 @@ fn main() {
         runner.play().expect("Could not find a winner")
     );
 
-    let scores = runner
-        .play_all();
+    let scores = runner.play_all();
 
-    let score = scores
-        .last()
-        .expect("Could not find the last winner");
+    let score = scores.last().expect("Could not find the last winner");
     println!("part 2: {}", score);
 }

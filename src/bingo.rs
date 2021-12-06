@@ -78,8 +78,13 @@ impl Board {
     fn check_row(&self, row: usize) -> bool {
         let count = (0..self.side)
             .filter_map(|i| {
-                self.get(row, i)
-                    .and_then(|v| if self.internal_marked(*v) { Some(()) } else { None })
+                self.get(row, i).and_then(|v| {
+                    if self.internal_marked(*v) {
+                        Some(())
+                    } else {
+                        None
+                    }
+                })
             })
             .count();
 
@@ -89,8 +94,13 @@ impl Board {
     fn check_col(&self, col: usize) -> bool {
         let count = (0..self.side)
             .filter_map(|i| {
-                self.get(i, col)
-                    .and_then(|v| if self.internal_marked(*v) { Some(()) } else { None })
+                self.get(i, col).and_then(|v| {
+                    if self.internal_marked(*v) {
+                        Some(())
+                    } else {
+                        None
+                    }
+                })
             })
             .count();
 
@@ -192,7 +202,7 @@ impl FastBoard {
             score,
             won: false,
             rows: vec![0; side],
-            cols: vec![0; side]
+            cols: vec![0; side],
         }
     }
 }
@@ -262,12 +272,18 @@ impl TryFrom<&[String]> for FastBoard {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct Runner<T> where T: BingoLike + Send + Sync {
+pub struct Runner<T>
+where
+    T: BingoLike + Send + Sync,
+{
     sequence: Sequence,
     boards: Vec<T>,
 }
 
-impl<T> Runner<T> where T: BingoLike + Send + Sync {
+impl<T> Runner<T>
+where
+    T: BingoLike + Send + Sync,
+{
     pub fn play(&mut self) -> Result<i64> {
         for v in &self.sequence.values {
             for board in self.boards.iter_mut() {
@@ -521,11 +537,13 @@ mod tests {
         fn finding_first_win() {
             let input = input();
 
-            let mut runner: Runner<Board> = Runner::try_from(input.clone()).expect("Could not construct runner");
+            let mut runner: Runner<Board> =
+                Runner::try_from(input.clone()).expect("Could not construct runner");
             let score = runner.play().expect("Did not find a winner");
             assert_eq!(score, 4512);
 
-            let mut runner: Runner<FastBoard> = Runner::try_from(input).expect("Could not construct runner");
+            let mut runner: Runner<FastBoard> =
+                Runner::try_from(input).expect("Could not construct runner");
             let score = runner.play().expect("Did not find a winner");
             assert_eq!(score, 4512);
         }
@@ -534,11 +552,13 @@ mod tests {
         fn finding_all_wins() {
             let input = input();
 
-            let mut runner: Runner<Board> = Runner::try_from(input.clone()).expect("Could not construct runner");
+            let mut runner: Runner<Board> =
+                Runner::try_from(input.clone()).expect("Could not construct runner");
             let scores = runner.play_all();
             assert_eq!(scores.last().cloned(), Some(1924));
 
-            let mut runner: Runner<FastBoard> = Runner::try_from(input).expect("Could not construct runner");
+            let mut runner: Runner<FastBoard> =
+                Runner::try_from(input).expect("Could not construct runner");
             let scores = runner.play_all();
             assert_eq!(scores.last().cloned(), Some(1924));
         }
@@ -547,13 +567,15 @@ mod tests {
         fn finding_all_wins_in_parallel() {
             let input = input();
 
-            let mut runner: Runner<Board> = Runner::try_from(input.clone()).expect("Could not construct runner");
+            let mut runner: Runner<Board> =
+                Runner::try_from(input.clone()).expect("Could not construct runner");
             let score = runner
                 .par_find_last_scoring()
                 .expect("Could not find last scoring");
             assert_eq!(score, 1924);
 
-            let mut runner: Runner<FastBoard> = Runner::try_from(input).expect("Could not construct runner");
+            let mut runner: Runner<FastBoard> =
+                Runner::try_from(input).expect("Could not construct runner");
             let score = runner
                 .par_find_last_scoring()
                 .expect("Could not find last scoring");
