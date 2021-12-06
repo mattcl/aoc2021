@@ -214,7 +214,8 @@ impl BingoLike for FastBoard {
             self.rows[row] += 1;
             self.cols[col] += 1;
 
-            if self.rows[row] == 5 || self.cols[col] == 5 {
+            let len = self.rows.len();
+            if self.rows[row] == len || self.cols[col] == len {
                 self.won = true;
             }
 
