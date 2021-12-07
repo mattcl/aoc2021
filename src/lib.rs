@@ -1,4 +1,5 @@
 pub mod bingo;
+pub mod crab;
 pub mod diagnostic;
 pub mod fish;
 pub mod sonar;
