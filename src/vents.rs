@@ -55,7 +55,7 @@ impl Line {
         (self.start.x - self.end.x).abs() == (self.start.y - self.end.y).abs()
     }
 
-    pub fn points(&self) -> Vec<Point> {
+    pub fn points(&self) -> impl Iterator<Item = Point> {
         // this works if we only consider vertical or horizontal
         let xadj = match self.start.x.cmp(&self.end.x) {
             Ordering::Greater => -1,
@@ -73,9 +73,11 @@ impl Line {
             .abs()
             .max((self.start.y - self.end.y).abs())
             + 1;
-        (0..count)
-            .map(|i| Point::new(self.start.x + i * xadj, self.start.y + i * yadj))
-            .collect()
+
+        let sx = self.start.x;
+        let sy = self.start.y;
+
+        (0..count).map(move |i| Point::new(sx + i * xadj, sy + i * yadj))
     }
 
     // originally I was going to attempt to use this more cleverly to check for
@@ -215,25 +217,25 @@ mod tests {
             let expected = vec![Point::new(1, 1), Point::new(1, 2), Point::new(1, 3)];
             let points = line.points();
 
-            assert_eq!(points, expected);
+            assert_eq!(points.collect::<Vec<Point>>(), expected);
 
             let line = Line::from_str("1,1 -> 3,1").expect("Could not make line");
             let expected = vec![Point::new(1, 1), Point::new(2, 1), Point::new(3, 1)];
             let points = line.points();
 
-            assert_eq!(points, expected);
+            assert_eq!(points.collect::<Vec<Point>>(), expected);
 
             let line = Line::from_str("1,1 -> 3,3").expect("Could not make line");
             let expected = vec![Point::new(1, 1), Point::new(2, 2), Point::new(3, 3)];
             let points = line.points();
 
-            assert_eq!(points, expected);
+            assert_eq!(points.collect::<Vec<Point>>(), expected);
 
             let line = Line::from_str("1,3 -> 3,1").expect("Could not make line");
             let expected = vec![Point::new(1, 3), Point::new(2, 2), Point::new(3, 1)];
             let points = line.points();
 
-            assert_eq!(points, expected);
+            assert_eq!(points.collect::<Vec<Point>>(), expected);
         }
 
         #[test]
