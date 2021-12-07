@@ -1,9 +1,9 @@
-use std::{hash::Hash, str::FromStr, num::ParseIntError};
+use std::{hash::Hash, num::ParseIntError, str::FromStr};
 
 use itertools::{Itertools, MinMaxResult};
 use rayon::prelude::*;
 
-pub trait Moveable {
+pub trait Moveable: FromStr + Eq + PartialEq + Hash + Ord + PartialOrd + Send + Sync {
     fn location(&self) -> i64;
     fn cost_to_move(&self, target: i64) -> i64;
 }
@@ -52,25 +52,35 @@ impl FromStr for ArithmeticSub {
 }
 
 #[derive(Debug, Clone)]
-pub struct Swarm<T> where T: Moveable + Copy + Send + Sync + FromStr + Ord + Hash {
+pub struct Swarm<T>
+where
+    T: Moveable,
+{
     submarines: Vec<T>,
 }
 
-impl<T> Swarm<T> where T: Moveable + Copy + Send + Sync + FromStr + Ord + Hash{
+impl<T> Swarm<T>
+where
+    T: Moveable,
+{
     pub fn new(submarines: Vec<T>) -> Self {
-        Self {submarines}
+        Self { submarines }
     }
 
     pub fn cheapest_expenditure(&self) -> i64 {
         let (min, max) = match self.submarines.iter().minmax() {
             MinMaxResult::NoElements => return -1,
             MinMaxResult::OneElement(only) => (only.location(), only.location()),
-            MinMaxResult::MinMax(min, max) => (min.location(), max.location())
+            MinMaxResult::MinMax(min, max) => (min.location(), max.location()),
         };
 
         (min..=max)
             .into_par_iter()
-            .map(|t| self.submarines.iter().map(|s| s.cost_to_move(t)).sum())
+            .map(|t| {
+                self.submarines
+                    .iter()
+                    .fold(0, |acc, s| acc + s.cost_to_move(t))
+            })
             .min()
             .unwrap_or(-1)
     }
@@ -78,15 +88,19 @@ impl<T> Swarm<T> where T: Moveable + Copy + Send + Sync + FromStr + Ord + Hash{
 
 impl<T> FromStr for Swarm<T>
 where
-    T: Moveable + Copy + Send + Sync + FromStr + Ord + Hash
+    T: Moveable,
 {
     type Err = <T as FromStr>::Err;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self {submarines: s.split(',').map(T::from_str).collect::<Result<Vec<T>, <T as FromStr>::Err>>()?})
+        Ok(Self {
+            submarines: s
+                .split(',')
+                .map(T::from_str)
+                .collect::<Result<Vec<T>, <T as FromStr>::Err>>()?,
+        })
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -96,13 +110,15 @@ mod tests {
 
     #[test]
     fn cheapest_expenditure() {
-        let swarm: Swarm<LinearSub> = Swarm::from_str("16,1,2,0,4,2,7,1,2,14").expect("Could not create swarm");
+        let swarm: Swarm<LinearSub> =
+            Swarm::from_str("16,1,2,0,4,2,7,1,2,14").expect("Could not create swarm");
         assert_eq!(swarm.cheapest_expenditure(), 37);
     }
 
     #[test]
     fn arithmetic_expenditure() {
-        let swarm: Swarm<ArithmeticSub> = Swarm::from_str("16,1,2,0,4,2,7,1,2,14").expect("Could not create swarm");
+        let swarm: Swarm<ArithmeticSub> =
+            Swarm::from_str("16,1,2,0,4,2,7,1,2,14").expect("Could not create swarm");
         assert_eq!(swarm.cheapest_expenditure(), 168);
     }
 }

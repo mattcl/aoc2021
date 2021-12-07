@@ -55,6 +55,12 @@ impl Lanternfish {
     }
 }
 
+impl Default for Lanternfish {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FromStr for Lanternfish {
     type Err = ParseIntError;
 

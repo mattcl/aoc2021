@@ -1,4 +1,7 @@
-use aoc::{crab::{ArithmeticSub, LinearSub, Swarm}, util::load_input};
+use aoc::{
+    crab::{ArithmeticSub, LinearSub, Swarm},
+    util::load_input,
+};
 use criterion::{criterion_group, Criterion};
 
 use std::str::FromStr;
