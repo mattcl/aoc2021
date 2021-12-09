@@ -1,7 +1,7 @@
-use std::{convert::TryFrom, iter::FromIterator, str::FromStr, ops::Deref};
+use std::{convert::TryFrom, iter::FromIterator, ops::Deref, str::FromStr};
 
-use anyhow::{anyhow, Result, bail};
-use rayon::iter::IntoParallelIterator;
+use anyhow::{anyhow, bail, Result};
+use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 
 pub enum Digit {
@@ -32,7 +32,7 @@ impl TryFrom<usize> for Digit {
             7 => Self::Seven,
             8 => Self::Eight,
             9 => Self::Nine,
-            _ => bail!("Digits can only be 0-9 but got: {}", value)
+            _ => bail!("Digits can only be 0-9 but got: {}", value),
         })
     }
 }
@@ -54,6 +54,10 @@ impl Signal {
         self.0.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     pub fn is_superset_of(&self, other: &Signal) -> bool {
         self.0.is_superset(other)
     }
@@ -64,7 +68,7 @@ impl Signal {
             3 => Classification::Seven,
             4 => Classification::Four,
             7 => Classification::Eight,
-            x => Classification::Unknown(x)
+            x => Classification::Unknown(x),
         }
     }
 }
@@ -82,17 +86,11 @@ impl FromStr for Signal {
 
     fn from_str(s: &str) -> Result<Self> {
         let initial = s.len();
-        if initial > 7 || initial < 2 {
+        if !(2..=7).contains(&initial) {
             bail!("invalid signal length: {}", s);
         }
 
-        let hash = FxHashSet::from_iter(s.chars()
-            .filter(|ch| {
-                match ch {
-                    'a'..='g' => true,
-                    _ => false,
-                }
-            }));
+        let hash = FxHashSet::from_iter(s.chars().filter(|ch| matches!(ch, 'a'..='g')));
 
         // we filtered some chars, so the signal must be invalid
         if hash.len() != initial {
@@ -153,13 +151,9 @@ pub struct Observation {
 
 impl Observation {
     pub fn rhs_count_known(&self) -> usize {
-        self.right.iter()
-            .filter(|s| {
-                match s.classify() {
-                    Classification::Unknown(_) => false,
-                    _ => true
-                }
-            })
+        self.right
+            .iter()
+            .filter(|s| !matches!(s.classify(), Classification::Unknown(_)))
             .count()
     }
 
@@ -188,7 +182,7 @@ impl Observation {
                     } else {
                         sixes.push(s);
                     }
-                },
+                }
                 Classification::Unknown(x) => bail!("Invalid signal len: {}! {:?}", x, s),
                 Classification::One => solution.set(Digit::One, s),
                 Classification::Four => solution.set(Digit::Four, s),
@@ -199,11 +193,19 @@ impl Observation {
 
         // sanity check
         if sixes.len() != 3 || fives.len() != 3 {
-            bail!("incorrect number of sixes or fives values: 6 -> {:?}, 5 -> {:?}", sixes, fives);
+            bail!(
+                "incorrect number of sixes or fives values: 6 -> {:?}, 5 -> {:?}",
+                sixes,
+                fives
+            );
         }
 
-        let one = solution.get(Digit::One).ok_or_else(|| anyhow!("attempted solution without One set"))?;
-        let four = solution.get(Digit::Four).ok_or_else(|| anyhow!("attempted solution without Four set"))?;
+        let one = solution
+            .get(Digit::One)
+            .ok_or_else(|| anyhow!("attempted solution without One set"))?;
+        let four = solution
+            .get(Digit::Four)
+            .ok_or_else(|| anyhow!("attempted solution without Four set"))?;
 
         for s in sixes.iter() {
             if !s.is_superset_of(one) {
@@ -218,7 +220,9 @@ impl Observation {
             }
         }
 
-        let nine = solution.get(Digit::Nine).ok_or_else(|| anyhow!("attempted solution without Nine set"))?;
+        let nine = solution
+            .get(Digit::Nine)
+            .ok_or_else(|| anyhow!("attempted solution without Nine set"))?;
         for s in fives.iter() {
             if s.is_superset_of(one) {
                 // we know this is the 3
@@ -244,16 +248,25 @@ impl FromStr for Observation {
 
     fn from_str(s: &str) -> Result<Self> {
         let mut parts = s.split(" | ");
-        let lhs = parts.next().ok_or_else(|| anyhow!("input missing left hand side {}", s))?;
-        let rhs = parts.next().ok_or_else(|| anyhow!("input missing right hand side {}", s))?;
+        let lhs = parts
+            .next()
+            .ok_or_else(|| anyhow!("input missing left hand side {}", s))?;
+        let rhs = parts
+            .next()
+            .ok_or_else(|| anyhow!("input missing right hand side {}", s))?;
 
-        let left = lhs.split_whitespace().map(|s| s.parse()).collect::<Result<Vec<Signal>>>()?;
-        let right = rhs.split_whitespace().map(|s| s.parse()).collect::<Result<Vec<Signal>>>()?;
+        let left = lhs
+            .split_whitespace()
+            .map(|s| s.parse())
+            .collect::<Result<Vec<Signal>>>()?;
+        let right = rhs
+            .split_whitespace()
+            .map(|s| s.parse())
+            .collect::<Result<Vec<Signal>>>()?;
 
-        Ok(Observation{left, right})
+        Ok(Observation { left, right })
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct Solver {
@@ -262,7 +275,7 @@ pub struct Solver {
 
 impl Solver {
     pub fn new(observations: Vec<Observation>) -> Self {
-        Self {observations}
+        Self { observations }
     }
 
     pub fn rhs_count_known(&self) -> usize {
@@ -270,8 +283,19 @@ impl Solver {
     }
 
     pub fn rhs_values_sum(&self) -> Result<u64> {
-        Ok(self.observations
+        Ok(self
+            .observations
             .iter()
+            .map(|o| o.rhs_value())
+            .collect::<Result<Vec<u64>>>()?
+            .iter()
+            .sum())
+    }
+
+    pub fn par_rhs_values_sum(&self) -> Result<u64> {
+        Ok(self
+            .observations
+            .par_iter()
             .map(|o| o.rhs_value())
             .collect::<Result<Vec<u64>>>()?
             .iter()
@@ -283,7 +307,12 @@ impl TryFrom<Vec<String>> for Solver {
     type Error = anyhow::Error;
 
     fn try_from(value: Vec<String>) -> Result<Self> {
-        Ok(Solver::new(value.iter().map(|s| Observation::from_str(s)).collect::<Result<Vec<Observation>>>()?))
+        Ok(Solver::new(
+            value
+                .iter()
+                .map(|s| Observation::from_str(s))
+                .collect::<Result<Vec<Observation>>>()?,
+        ))
     }
 }
 
@@ -389,6 +418,9 @@ mod tests {
 
             let solver = Solver::try_from(input).expect("Could not parse input");
             let res = solver.rhs_values_sum().expect("Could not solve");
+            assert_eq!(res, 61229);
+
+            let res = solver.par_rhs_values_sum().expect("Could not solve");
             assert_eq!(res, 61229);
         }
     }
