@@ -16,7 +16,7 @@ pub fn bench(c: &mut Criterion) {
 
         b.iter(|| solver.rhs_values_sum().expect("could not find solution"))
     });
-    group.bench_function("part 2 solving for digits/prallel", |b| {
+    group.bench_function("part 2 solving for digits/parallel", |b| {
         let lines = load_input("008").expect("could not load input");
         let solver = Solver::try_from(lines).expect("Could not parse input");
 
