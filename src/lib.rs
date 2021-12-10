@@ -3,6 +3,7 @@ pub mod crab;
 pub mod diagnostic;
 pub mod fish;
 pub mod heightmap;
+pub mod navigation;
 pub mod sonar;
 pub mod ssd;
 pub mod submarine;
