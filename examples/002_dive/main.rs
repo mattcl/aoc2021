@@ -1,5 +1,5 @@
 use aoc::submarine::{AimableSubmarine, Moveable, Submarine};
-use aoc::util::{load_input, parse_input};
+use aoc::util::{load_input, parse_input, Solution};
 
 fn main() {
     let lines = load_input("002").expect("could not load input");
@@ -13,6 +13,8 @@ fn main() {
         aimable_sub.execute(command);
     }
 
-    println!("part 1: {}", sub.location_hash());
-    println!("part 2: {}", aimable_sub.location_hash());
+    println!(
+        "{}",
+        Solution::new(sub.location_hash(), aimable_sub.location_hash())
+    );
 }

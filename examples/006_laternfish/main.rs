@@ -1,4 +1,7 @@
-use aoc::{fish::Sim, util::load_input};
+use aoc::{
+    fish::Sim,
+    util::{load_input, Solution},
+};
 use std::str::FromStr;
 
 fn main() {
@@ -7,6 +10,8 @@ fn main() {
 
     let sim = Sim::from_str(&line).expect("Could not make sim");
 
-    println!("part 1: {}", sim.population_after(80));
-    println!("part 2: {}", sim.population_after(256));
+    println!(
+        "{}",
+        Solution::new(sim.population_after(80), sim.population_after(256))
+    );
 }

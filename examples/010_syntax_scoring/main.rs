@@ -1,6 +1,6 @@
 use aoc::{
     navigation::Program,
-    util::{load_input, parse_input},
+    util::{load_input, parse_input, Solution},
 };
 
 fn main() {
@@ -8,6 +8,8 @@ fn main() {
     let program = Program::from(parse_input(&input).expect("could not parse input"));
     let check = program.check();
 
-    println!("part 1: {}", check.score_corruptions());
-    println!("part 2: {}", check.score_completions());
+    println!(
+        "{}",
+        Solution::new(check.score_corruptions(), check.score_completions())
+    );
 }

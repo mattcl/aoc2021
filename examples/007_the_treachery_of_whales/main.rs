@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use aoc::{
     crab::{ArithmeticSub, LinearSub, Swarm},
-    util::load_input,
+    util::{load_input, Solution},
 };
 
 fn main() {
@@ -12,6 +12,11 @@ fn main() {
     let arithmetic_swarm: Swarm<ArithmeticSub> =
         Swarm::from_str(&line).expect("Could not make swarm");
 
-    println!("part 1: {}", linear_swarm.cheapest_expenditure());
-    println!("part 2: {}", arithmetic_swarm.cheapest_expenditure());
+    println!(
+        "{}",
+        Solution::new(
+            linear_swarm.cheapest_expenditure(),
+            arithmetic_swarm.cheapest_expenditure()
+        )
+    );
 }

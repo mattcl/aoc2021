@@ -1,6 +1,6 @@
 use aoc::{
     bingo::{FastBoard, Runner},
-    util::load_input,
+    util::{load_input, Solution},
 };
 use std::convert::TryFrom;
 
@@ -9,12 +9,13 @@ fn main() {
     let mut runner: Runner<FastBoard> = Runner::try_from(lines).expect("Input was invalid");
 
     println!(
-        "part 1: {}",
-        runner.play().expect("Could not find a winner")
+        "{}",
+        Solution::new(
+            runner.play().expect("Could not find a winner"),
+            runner
+                .play_all()
+                .last()
+                .expect("Could not find the last winner")
+        )
     );
-
-    let scores = runner.play_all();
-
-    let score = scores.last().expect("Could not find the last winner");
-    println!("part 2: {}", score);
 }

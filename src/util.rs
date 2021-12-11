@@ -1,10 +1,66 @@
 use std::env::{self, VarError};
+use std::fmt::Display;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::str::FromStr;
 
 use anyhow::{anyhow, bail, Result};
+use serde::Serialize;
+use serde_json;
+
+#[derive(Serialize)]
+pub struct Solution<T, G> {
+    part_one: T,
+    part_two: G,
+}
+
+impl Default for Solution<&str, &str> {
+    fn default() -> Self {
+        Solution::new("not implemented", "not implemented")
+    }
+}
+
+impl<T, G> Solution<T, G>
+where
+    T: Display + Serialize,
+    G: Display + Serialize,
+{
+    pub fn new(part_one: T, part_two: G) -> Self {
+        Self { part_one, part_two }
+    }
+}
+
+impl<T, G> Display for Solution<T, G>
+where
+    T: Display + Serialize,
+    G: Display + Serialize,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if env::var("AOC_OUTPUT_JSON").is_ok() {
+            // So it's probably not idiomatic to panic here, but, I want this
+            // specific behavior in this specific case. I would not do this in
+            // code destined for production
+            write!(
+                f,
+                "{}",
+                serde_json::to_string(&self).expect("unable to convert self to json")
+            )
+        } else {
+            write!(f, "part 1: {}\npart 2: {}", self.part_one, self.part_two)
+        }
+    }
+}
+
+impl<T, G> From<(T, G)> for Solution<T, G>
+where
+    T: Display + Serialize,
+    G: Display + Serialize,
+{
+    fn from(value: (T, G)) -> Self {
+        Self::new(value.0, value.1)
+    }
+}
 
 /// Will attempt to load input from the specified AOC_INPUT file, otherwise
 /// will default to loading the corresponding input file for the day given by
