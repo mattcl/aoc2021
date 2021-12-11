@@ -3,6 +3,7 @@ use std::str::FromStr;
 use anyhow::Result;
 use itertools::Itertools;
 
+// So, yeah... I'm not going to apologize for doing this
 pub trait Delimiter {
     fn closes(&self, other: &Self) -> bool;
     fn points(&self) -> i64;
