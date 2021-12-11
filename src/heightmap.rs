@@ -4,56 +4,16 @@ use anyhow::{anyhow, bail, Result};
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 
-#[derive(Debug, Clone, Copy, Default, Hash, Eq, PartialEq)]
-pub struct Loc {
-    row: usize,
-    col: usize,
-}
-
-impl Loc {
-    pub fn new(row: usize, col: usize) -> Self {
-        Self { row, col }
-    }
-
-    pub fn north(&self) -> Option<Loc> {
-        if self.row == 0 {
-            return None;
-        }
-
-        Some((self.row - 1, self.col).into())
-    }
-
-    pub fn south(&self) -> Option<Loc> {
-        Some((self.row + 1, self.col).into())
-    }
-
-    pub fn west(&self) -> Option<Loc> {
-        if self.col == 0 {
-            return None;
-        }
-
-        Some((self.row, self.col - 1).into())
-    }
-
-    pub fn east(&self) -> Option<Loc> {
-        Some((self.row, self.col + 1).into())
-    }
-}
-
-impl From<(usize, usize)> for Loc {
-    fn from(v: (usize, usize)) -> Self {
-        Self { row: v.0, col: v.1 }
-    }
-}
+use crate::generic::Location;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Basin {
-    loc: Loc,
+    loc: Location,
     size: usize,
 }
 
 impl Basin {
-    pub fn new(loc: Loc) -> Self {
+    pub fn new(loc: Location) -> Self {
         Self { loc, size: 0 }
     }
 }
@@ -81,11 +41,11 @@ impl HeightMap {
         Ok(basins[0].size * basins[1].size * basins[2].size)
     }
 
-    pub fn lowpoints(&self) -> Vec<Loc> {
+    pub fn lowpoints(&self) -> Vec<Location> {
         let mut points = Vec::new();
         for row in 0..self.locations.len() {
             for col in 0..self.locations[row].len() {
-                let loc: Loc = (row, col).into();
+                let loc: Location = (row, col).into();
                 // direct lookup this, since we know it exists
                 let value = self.locations[row][col];
                 if loc
@@ -124,11 +84,11 @@ impl HeightMap {
     }
 
     pub fn determine_size(&self, basin: &mut Basin) {
-        let mut checked: FxHashSet<Loc> = FxHashSet::default();
+        let mut checked: FxHashSet<Location> = FxHashSet::default();
         self.recur(basin.loc, basin, &mut checked);
     }
 
-    pub fn recur(&self, cur: Loc, basin: &mut Basin, checked: &mut FxHashSet<Loc>) {
+    pub fn recur(&self, cur: Location, basin: &mut Basin, checked: &mut FxHashSet<Location>) {
         checked.insert(cur);
         if self.get(cur) == Some(9) {
             return;
@@ -161,13 +121,13 @@ impl HeightMap {
         }
     }
 
-    pub fn get(&self, loc: Loc) -> Option<i64> {
+    pub fn get(&self, loc: Location) -> Option<i64> {
         self.locations
             .get(loc.row)
             .and_then(|r| r.get(loc.col).copied())
     }
 
-    pub fn risk(&self, loc: Loc) -> Option<i64> {
+    pub fn risk(&self, loc: Location) -> Option<i64> {
         self.get(loc).map(|v| v + 1)
     }
 }
@@ -195,40 +155,6 @@ impl TryFrom<Vec<String>> for HeightMap {
 
 #[cfg(test)]
 mod tests {
-    mod loc {
-        use super::super::*;
-
-        #[test]
-        fn north() {
-            let l = Loc::new(2, 2);
-            assert_eq!(l.north(), Some(Loc::new(1, 2)));
-
-            let l = Loc::new(0, 2);
-            assert_eq!(l.north(), None);
-        }
-
-        #[test]
-        fn south() {
-            let l = Loc::new(2, 2);
-            assert_eq!(l.south(), Some(Loc::new(3, 2)));
-        }
-
-        #[test]
-        fn east() {
-            let l = Loc::new(2, 2);
-            assert_eq!(l.east(), Some(Loc::new(2, 3)));
-        }
-
-        #[test]
-        fn west() {
-            let l = Loc::new(2, 2);
-            assert_eq!(l.west(), Some(Loc::new(2, 1)));
-
-            let l = Loc::new(2, 0);
-            assert_eq!(l.west(), None);
-        }
-    }
-
     mod heightmap {
         use crate::util::test_input;
 
