@@ -1,7 +1,7 @@
-use std::{convert::TryFrom, fmt};
+use std::convert::TryFrom;
 
 use anyhow::{anyhow, Result};
-use itertools::Itertools;
+use rayon::prelude::*;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -54,25 +54,6 @@ impl From<String> for Cave {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Default)]
-pub struct Path {
-    caves: Vec<Cave>,
-}
-
-impl fmt::Display for Path {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.caves.iter().map(|c| c.id.clone()).join(","))
-    }
-}
-
-impl From<Vec<&Cave>> for Path {
-    fn from(value: Vec<&Cave>) -> Self {
-        Path {
-            caves: value.into_iter().cloned().collect(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Default)]
 pub struct CaveSystem {
     caves: Vec<Cave>,
 }
@@ -88,82 +69,6 @@ impl CaveSystem {
             .get_mut(b)
             .ok_or_else(|| anyhow!("cannot find cave {} for link", b))?
             .add_link(a);
-
-        Ok(())
-    }
-
-    pub fn paths(&self, allow_multi_visit: bool) -> Result<Vec<Path>> {
-        // find the index of the start cave
-        let (idx, start) = self
-            .caves
-            .iter()
-            .enumerate()
-            .find_map(|cave| {
-                if cave.1.kind == CaveType::Start {
-                    Some(cave)
-                } else {
-                    None
-                }
-            })
-            .ok_or_else(|| anyhow!("cave system does not have a start"))?;
-
-        // find the index of the end cave
-        let end = self
-            .caves
-            .iter()
-            .find_map(|cave| {
-                if cave.kind == CaveType::End {
-                    Some(cave)
-                } else {
-                    None
-                }
-            })
-            .ok_or_else(|| anyhow!("cave system does not have an end"))?;
-
-        let mut p = Vec::new();
-        let mut seen = FxHashMap::default();
-        seen.insert(idx, 3); // set to something higher so we don't repeat start
-        let mut cur = vec![start];
-        self.recur(start, end, !allow_multi_visit, &mut cur, &mut seen, &mut p)?;
-        Ok(p)
-    }
-
-    pub fn recur<'a>(
-        &'a self,
-        start: &Cave,
-        end: &Cave,
-        allowance_used: bool,
-        cur: &mut Vec<&'a Cave>,
-        seen: &mut FxHashMap<usize, u8>,
-        paths: &mut Vec<Path>,
-    ) -> Result<()> {
-        if start == end {
-            paths.push(cur.clone().into());
-            return Ok(());
-        }
-
-        for i in start.links.iter() {
-            // since we won't ever insert big ones in here, this is fine
-            if matches!(seen.get(i), Some(v) if (allowance_used && *v > 0) || *v > 1) {
-                continue;
-            }
-
-            // otherwise
-            let next = self.lookup(*i)?;
-            let mut next_allowance = allowance_used;
-            if next.kind != CaveType::Big {
-                let e = seen.entry(*i).or_default();
-                *e += 1;
-                next_allowance = next_allowance || *e > 1;
-            }
-            cur.push(next);
-            self.recur(next, end, next_allowance, cur, seen, paths)?;
-            cur.pop();
-
-            // This is safe, since the only way the and_modify triggers is if
-            // we previously inserted
-            seen.entry(*i).and_modify(|e| *e -= 1);
-        }
 
         Ok(())
     }
@@ -200,18 +105,58 @@ impl CaveSystem {
             })
             .ok_or_else(|| anyhow!("cave system does not have an end"))?;
 
-        let mut seen = FxHashSet::default();
-        let mut cache = FxHashMap::default();
-        self.recur_fast(start, end, !allow_multi_visit, &mut seen, &mut cache)
+        let mut seen = vec![0; self.caves.len()];
+        self.recur_fast(start, end, !allow_multi_visit, &mut seen)
     }
 
-    pub fn recur_fast<'a>(
-        &'a self,
+    pub fn paths_semi_par(&self, allow_multi_visit: bool) -> Result<usize> {
+        // find the index of the start cave
+        let start = self
+            .caves
+            .iter()
+            .find_map(|cave| {
+                if cave.kind == CaveType::Start {
+                    Some(cave)
+                } else {
+                    None
+                }
+            })
+            .ok_or_else(|| anyhow!("cave system does not have a start"))?;
+
+        // find the index of the end cave
+        let end = self
+            .caves
+            .iter()
+            .enumerate()
+            .find_map(|cave| {
+                if cave.1.kind == CaveType::End {
+                    Some(cave.0)
+                } else {
+                    None
+                }
+            })
+            .ok_or_else(|| anyhow!("cave system does not have an end"))?;
+
+        let count = start
+            .links
+            .par_iter()
+            .map(|ns| {
+                let mut seen = vec![0; self.caves.len()];
+                seen[*ns] = 1;
+                self.recur_fast(*ns, end, !allow_multi_visit, &mut seen)
+            })
+            .collect::<Result<Vec<usize>>>()?
+            .iter()
+            .sum();
+        Ok(count)
+    }
+
+    pub fn recur_fast(
+        &self,
         start: usize,
         end: usize,
         allowance_used: bool,
-        seen: &mut FxHashSet<usize>,
-        cache: &mut FxHashMap<(usize, usize), usize>,
+        seen: &mut Vec<usize>,
     ) -> Result<usize> {
         if start == end {
             return Ok(1);
@@ -222,34 +167,21 @@ impl CaveSystem {
         let mut count = 0;
 
         for i in cave.links.iter() {
+            let i = *i;
             // otherwise
-            let next = self.lookup(*i)?;
+            let next = self.lookup(i)?;
             if next.kind == CaveType::Big || next.kind == CaveType::End {
-                count += self.recur_fast(*i, end, allowance_used, seen, cache)?;
+                count += self.recur_fast(i, end, allowance_used, seen)?;
             } else if next.kind == CaveType::Small {
-                if seen.contains(i) {
+                if seen[i] > 0 {
                     // simulate allowing this or not
-                    if allowance_used {
-                        continue;
-                    } else {
-                        count += self.recur_fast(*i, end, true, seen, cache)?;
+                    if !allowance_used {
+                        count += self.recur_fast(i, end, true, seen)?;
                     }
                 } else {
-                    if cave.links.len() < 3 {
-                        if let Some(c) = cache.get(&(start, *i)) {
-                            count += *c;
-                            continue;
-                        }
-                    }
-
-                    seen.insert(*i);
-                    let c = self.recur_fast(*i, end, allowance_used, seen, cache)?;
-                    count += c;
-                    seen.remove(i);
-
-                    if cave.links.len() < 3 {
-                        cache.insert((start, *i), c);
-                    }
+                    seen[i] += 1;
+                    count += self.recur_fast(i, end, allowance_used, seen)?;
+                    seen[i] -= 1;
                 }
             }
         }
@@ -324,9 +256,6 @@ mod tests {
                 ",
             );
             let cs = CaveSystem::try_from(input).expect("could not parse input");
-            let paths = cs.paths(false).expect("could not find paths");
-            assert_eq!(paths.len(), 10);
-
             let paths = cs.paths_fast(false).expect("could not find paths");
             assert_eq!(paths, 10);
 
@@ -392,10 +321,10 @@ mod tests {
                 ",
             );
             let cs = CaveSystem::try_from(input).expect("could not parse input");
-            let paths = cs.paths(true).expect("could not find paths");
-            assert_eq!(paths.len(), 103);
-
             let paths = cs.paths_fast(true).expect("could not find paths");
+            assert_eq!(paths, 103);
+
+            let paths = cs.paths_semi_par(true).expect("could not find paths");
             assert_eq!(paths, 103);
         }
     }

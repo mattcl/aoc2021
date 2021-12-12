@@ -8,13 +8,21 @@ pub fn bench(c: &mut Criterion) {
         let lines = load_input("012").expect("could not load input");
         let cave_system = CaveSystem::try_from(lines).expect("could not parse input");
 
-        b.iter(|| cave_system.paths_fast(false).expect("could not find paths"));
+        b.iter(|| {
+            cave_system
+                .paths_semi_par(false)
+                .expect("could not find paths")
+        });
     });
     group.bench_function("part 2 allowing a single double visit", |b| {
         let lines = load_input("012").expect("could not load input");
         let cave_system = CaveSystem::try_from(lines).expect("could not parse input");
 
-        b.iter(|| cave_system.paths_fast(true).expect("could not find paths"));
+        b.iter(|| {
+            cave_system
+                .paths_semi_par(true)
+                .expect("could not find paths")
+        });
     });
     group.finish();
 }
