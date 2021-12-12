@@ -10,7 +10,7 @@ pub fn bench(c: &mut Criterion) {
 
         b.iter(|| cave_system.paths_fast(false).expect("could not find paths"));
     });
-    group.bench_function("part 2 allowing as single double visit", |b| {
+    group.bench_function("part 2 allowing a single double visit", |b| {
         let lines = load_input("012").expect("could not load input");
         let cave_system = CaveSystem::try_from(lines).expect("could not parse input");
 
