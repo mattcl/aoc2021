@@ -27,7 +27,7 @@ impl FromStr for Instruction {
             Ok(match axis {
                 "x" => Instruction::X(val),
                 "y" => Instruction::Y(val),
-                _ => bail!("Unkown axis: {}", s),
+                _ => bail!("Unknown axis: {}", s),
             })
         } else {
             bail!("Invalid instruction: {}", s);
