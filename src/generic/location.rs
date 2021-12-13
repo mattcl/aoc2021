@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use anyhow::{anyhow, Result};
 use itertools::Itertools;
 
 #[derive(Debug, Clone, Copy, Default, Hash, Eq, PartialEq)]
@@ -77,6 +80,23 @@ impl Location {
 impl From<(usize, usize)> for Location {
     fn from(value: (usize, usize)) -> Self {
         Self::new(value.0, value.1)
+    }
+}
+
+impl FromStr for Location {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut parts = s.split(',');
+        let row: usize = parts
+            .next()
+            .ok_or_else(|| anyhow!("missing row: {}", s))?
+            .parse()?;
+        let col: usize = parts
+            .next()
+            .ok_or_else(|| anyhow!("missing col: {}", s))?
+            .parse()?;
+        Ok(Self::new(row, col))
     }
 }
 
