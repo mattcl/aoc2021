@@ -90,7 +90,7 @@ impl fmt::Display for Page {
             }
         }
 
-        let mut grid = vec![vec!['.'; max_x + 1]; max_y + 1];
+        let mut grid = vec![vec![' '; max_x + 1]; max_y + 1];
 
         for d in &self.dots {
             grid[d.col][d.row] = '#';
@@ -245,9 +245,9 @@ mod tests {
             // don't use a grid until the very end, mine will be truncated
             let expected = "
 #####
-#...#
-#...#
-#...#
+#   #
+#   #
+#   #
 #####";
 
             println!("{}", p.to_string());
