@@ -46,10 +46,10 @@ impl Reflect for Location {
         // col as y, which is confusing, but I'm lazy.
         match instruction {
             Instruction::X(m) if self.row > *m => {
-                Location::new(self.row - 2 * (self.row - m), self.col)
+                Location::new(2 * m - self.row, self.col)
             }
             Instruction::Y(m) if self.col > *m => {
-                Location::new(self.row, self.col - 2 * (self.col - m))
+                Location::new(self.row, 2 * m - self.col)
             }
             _ => *self,
         }
