@@ -8,13 +8,13 @@ pub fn bench(c: &mut Criterion) {
         let lines = load_input("014").expect("could not load input");
         let poly = Polymerizer::try_from(lines).expect("could not parse input");
 
-        b.iter(|| poly.iterations(10))
+        b.iter(|| poly.iterations_fast(10))
     });
     group.bench_function("part 2 40 iterations", |b| {
         let lines = load_input("014").expect("could not load input");
         let poly = Polymerizer::try_from(lines).expect("could not parse input");
 
-        b.iter(|| poly.iterations(40))
+        b.iter(|| poly.iterations_fast(40))
     });
     group.finish();
 }

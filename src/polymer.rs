@@ -11,6 +11,8 @@ pub struct Rule {
     key: [char; 2],
     insertion: char,
     insertion_value: usize,
+    left: [char; 2],
+    right: [char; 2],
 }
 
 impl Rule {
@@ -73,6 +75,8 @@ impl FromStr for Rule {
             key: [key[0], key[1]],
             insertion,
             insertion_value,
+            left: [key[0], insertion],
+            right: [insertion, key[1]],
         })
     }
 }
@@ -146,6 +150,48 @@ impl Polymerizer {
             _ => 0,
         }
     }
+
+    pub fn iterations_fast(&self, num: usize) -> usize {
+        let mut rule_counts: FxHashMap<[char; 2], usize> = FxHashMap::default();
+        let mut counts = [0_usize; 26];
+
+        for ch in self.formula.0.chars() {
+            counts[ch as usize - 'A' as usize] += 1;
+        }
+
+        for (begin, end) in self.formula.0.chars().tuple_windows() {
+            let e = rule_counts.entry([begin, end]).or_default();
+            *e += 1;
+        }
+
+        for _ in 1..num {
+            let mut new: FxHashMap<[char; 2], usize> = FxHashMap::default();
+            for (k, v) in rule_counts.iter() {
+                if let Some(rule) = self.rules.get(k) {
+                    let e = new.entry(rule.left).or_default();
+                    *e += v;
+
+                    let e = new.entry(rule.right).or_default();
+                    *e += v;
+
+                    if let Some(right) = self.rules.get(&rule.right) {
+                        counts[right.insertion_value] += v;
+                    }
+
+                    if let Some(left) = self.rules.get(&rule.left) {
+                        counts[left.insertion_value] += v;
+                    }
+                }
+            }
+
+            rule_counts = new;
+        }
+
+        match counts.iter().filter(|v| **v > 0).minmax() {
+            MinMaxResult::MinMax(a, b) => b - a,
+            _ => 0,
+        }
+    }
 }
 
 impl TryFrom<Vec<String>> for Polymerizer {
@@ -201,6 +247,7 @@ mod tests {
 
             let p = Polymerizer::try_from(input).expect("could not parse input");
             assert_eq!(p.iterations(10), 1588);
+            assert_eq!(p.iterations_fast(10), 1588);
         }
     }
 }
