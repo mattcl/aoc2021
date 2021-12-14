@@ -45,12 +45,8 @@ impl Reflect for Location {
         // specifying x, y. Rather than flip them, just treat row as x and
         // col as y, which is confusing, but I'm lazy.
         match instruction {
-            Instruction::X(m) if self.row > *m => {
-                Location::new(2 * m - self.row, self.col)
-            }
-            Instruction::Y(m) if self.col > *m => {
-                Location::new(self.row, 2 * m - self.col)
-            }
+            Instruction::X(m) if self.row > *m => Location::new(2 * m - self.row, self.col),
+            Instruction::Y(m) if self.col > *m => Location::new(self.row, 2 * m - self.col),
             _ => *self,
         }
     }
