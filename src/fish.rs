@@ -87,6 +87,29 @@ impl Sim {
             .sum::<usize>()
             + self.starting_fish.len()
     }
+
+    pub fn fast_population_after(&self, days: i64) -> usize {
+        let mut counts = [0_usize; 9];
+
+        self.starting_fish
+            .iter()
+            .for_each(|f| counts[f.0 as usize] += 1);
+
+        for _ in 0..days {
+            let mut new_counts = [0_usize; 9];
+            for (i, v) in counts.iter().enumerate() {
+                if i == 0 {
+                    new_counts[8] += v;
+                    new_counts[6] += v;
+                } else {
+                    new_counts[i - 1] += v;
+                }
+            }
+            counts = new_counts;
+        }
+
+        counts.iter().sum()
+    }
 }
 
 impl FromStr for Sim {
@@ -199,6 +222,14 @@ mod tests {
             assert_eq!(sim.population_after(18), 26);
             assert_eq!(sim.population_after(80), 5934);
             assert_eq!(sim.population_after(256), 26984457539);
+
+            assert_eq!(sim.fast_population_after(1), 5);
+            assert_eq!(sim.fast_population_after(2), 6);
+            assert_eq!(sim.fast_population_after(3), 7);
+            assert_eq!(sim.fast_population_after(4), 9);
+            assert_eq!(sim.fast_population_after(18), 26);
+            assert_eq!(sim.fast_population_after(80), 5934);
+            assert_eq!(sim.fast_population_after(256), 26984457539);
         }
     }
 }

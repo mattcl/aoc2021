@@ -12,6 +12,9 @@ fn main() {
 
     println!(
         "{}",
-        Solution::new(sim.population_after(80), sim.population_after(256))
+        Solution::new(
+            sim.fast_population_after(80),
+            sim.fast_population_after(256)
+        )
     );
 }
