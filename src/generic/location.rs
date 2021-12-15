@@ -10,10 +10,23 @@ pub struct Location {
 }
 
 impl Location {
-    const ORTH_LOCS: [(i64, i64); 4] = [(0, 1), (0, -1), (1, 0), (-1, 0)];
+    const ORTH_LOCS: [(i64, i64); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
 
     pub fn new(row: usize, col: usize) -> Self {
         Self { row, col }
+    }
+
+    pub fn as_rm_index(&self, num_rows: usize) -> usize {
+        self.row * num_rows + self.col
+    }
+
+    pub fn from_rm_index(idx: usize, num_rows: usize) -> Self {
+        Location::new(idx / num_rows, idx % num_rows)
+    }
+
+    pub fn manhattan_dist(&self, other: &Self) -> usize {
+        ((self.row as i64 - other.row as i64).abs() + (self.col as i64 - other.col as i64).abs())
+            as usize
     }
 
     pub fn neighbors(&self) -> impl Iterator<Item = Self> {
@@ -107,6 +120,27 @@ mod tests {
         use std::iter::FromIterator;
 
         use super::super::*;
+
+        #[test]
+        fn as_rm_index() {
+            let l = Location::from_rm_index(5, 5);
+            assert_eq!(l.as_rm_index(5), 5);
+
+            let l = Location::from_rm_index(44, 5);
+            assert_eq!(l.as_rm_index(5), 44);
+        }
+
+        #[test]
+        fn from_rm_index() {
+            let l = Location::from_rm_index(5, 5);
+            assert_eq!(l, Location::new(1, 0));
+
+            let l = Location::from_rm_index(6, 5);
+            assert_eq!(l, Location::new(1, 1));
+
+            let l = Location::from_rm_index(11, 5);
+            assert_eq!(l, Location::new(2, 1));
+        }
 
         #[test]
         fn neighbors() {

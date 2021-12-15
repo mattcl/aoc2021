@@ -1,6 +1,7 @@
 pub mod bingo;
 pub mod camera;
 pub mod cave;
+pub mod chiton;
 pub mod crab;
 pub mod diagnostic;
 pub mod fish;
