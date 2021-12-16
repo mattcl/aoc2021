@@ -188,20 +188,14 @@ fn version(input: &str) -> IResult<&str, usize> {
 
 // Length type 0 has 15 bits specifying a number
 fn length_bits(input: &str) -> IResult<&str, Length> {
-    let (input, v) = map_res(
-        preceded(tag("0"), take(15_usize)),
-        from_bin,
-    )(input)?;
+    let (input, v) = map_res(preceded(tag("0"), take(15_usize)), from_bin)(input)?;
 
     Ok((input, Length::Bits(v)))
 }
 
 // Length type 1 has 11 bits specifying a number
 fn length_packets(input: &str) -> IResult<&str, Length> {
-    let (input, v) = map_res(
-        preceded(tag("1"), take(11_usize)),
-        from_bin,
-    )(input)?;
+    let (input, v) = map_res(preceded(tag("1"), take(11_usize)), from_bin)(input)?;
 
     Ok((input, Length::Packets(v)))
 }
@@ -213,10 +207,7 @@ fn operator_length(input: &str) -> IResult<&str, Length> {
 
 // extract a PacketType from the input
 fn packet_type(input: &str) -> IResult<&str, PacketType> {
-    let (input, code) = map_res(
-        map_res(take(3_usize), from_bin),
-        OpCode::try_from,
-    )(input)?;
+    let (input, code) = map_res(map_res(take(3_usize), from_bin), OpCode::try_from)(input)?;
 
     match code {
         OpCode::Literal => {
@@ -246,17 +237,11 @@ fn packet(input: &str) -> IResult<&str, Packet> {
 }
 
 fn literal_group(input: &str) -> IResult<&str, usize> {
-    map_res(
-        preceded(tag("1"), take(4_usize)),
-        from_bin,
-    )(input)
+    map_res(preceded(tag("1"), take(4_usize)), from_bin)(input)
 }
 
 fn literal_end_group(input: &str) -> IResult<&str, usize> {
-    map_res(
-        preceded(tag("0"), take(4_usize)),
-        from_bin,
-    )(input)
+    map_res(preceded(tag("0"), take(4_usize)), from_bin)(input)
 }
 
 fn literal_value(input: &str) -> IResult<&str, usize> {
