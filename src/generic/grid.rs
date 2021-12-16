@@ -10,6 +10,13 @@ pub trait GridLike {
     fn rows(&self) -> usize;
     fn cols(&self) -> usize;
     fn get(&self, location: &Location) -> Option<&Self::Item>;
+    fn get_mut(&mut self, location: &Location) -> Option<&mut Self::Item>;
+
+    /// Sets the value for the given location, if possible. Returns `true` if
+    /// the set happened.
+    fn set(&mut self, location: &Location, value: Self::Item) -> bool {
+        self.get_mut(location).map(|v| *v = value).is_some()
+    }
 
     fn top_left(&self) -> Location {
         Location::default()
@@ -82,6 +89,12 @@ where
             .get(location.row)
             .and_then(|r| r.get(location.col))
     }
+
+    fn get_mut(&mut self, location: &Location) -> Option<&mut Self::Item> {
+        self.locations
+            .get_mut(location.row)
+            .and_then(|r| r.get_mut(location.col))
+    }
 }
 
 impl<T> TryFrom<Vec<Vec<T>>> for Grid<T>
@@ -131,6 +144,16 @@ mod tests {
 
         assert_eq!(grid.top_left(), Location::new(0, 0));
         assert_eq!(grid.bottom_right(), Location::new(2, 3));
+    }
+
+    #[test]
+    fn mutating() {
+        let values: Vec<Vec<usize>> = vec![vec![1, 2, 3, 4], vec![5, 6, 7, 8], vec![9, 10, 11, 12]];
+        let mut grid = GTest::try_from(values).expect("could not construct grid");
+        assert_eq!(grid.get(&Location::new(0, 0)), Some(&1));
+
+        assert!(grid.set(&Location::new(0, 0), 222));
+        assert_eq!(grid.get(&Location::new(0, 0)), Some(&222));
     }
 
     #[test]

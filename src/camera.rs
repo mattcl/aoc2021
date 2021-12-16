@@ -89,7 +89,7 @@ impl fmt::Display for Page {
         let mut grid = vec![vec![' '; max_x + 1]; max_y + 1];
 
         for d in &self.dots {
-            grid[d.col][d.row] = '█';
+            grid[d.col][d.row] = '0';
         }
 
         let out = grid
@@ -240,11 +240,11 @@ mod tests {
             // This is a little different than what was provided, but, since I
             // don't use a grid until the very end, mine will be truncated
             let expected = "
-█████
-█   █
-█   █
-█   █
-█████";
+00000
+0   0
+0   0
+0   0
+00000";
 
             println!("{}", p.to_string());
             assert_eq!(p.to_string(), expected);

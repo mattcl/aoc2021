@@ -11,6 +11,7 @@ description = "Advent of code, 2021"
 anyhow = "1"
 auto_ops = "0.3.0"
 itertools = "0.10"
+nom = { version = "7.1", features = ["alloc"] }
 rayon = "1.5"
 rustc-hash = "1.1.0"
 serde = { version = "1.0", features = ["derive"] }

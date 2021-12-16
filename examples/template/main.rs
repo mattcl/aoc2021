@@ -5,6 +5,6 @@ fn main() {
 
     // println!(
     //     "{}",
-    //     Solution::default()
+    //     Solution::new("not implemented", "not implemented")
     // );
 }
