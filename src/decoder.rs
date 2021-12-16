@@ -3,7 +3,7 @@ use std::{convert::TryFrom, num::ParseIntError, str::FromStr};
 use anyhow::{anyhow, bail, Result};
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take, take_while_m_n},
+    bytes::complete::{tag, take},
     combinator::{all_consuming, map_res},
     multi::{fold_many0, fold_many1, many1, many_m_n},
     sequence::{preceded, tuple},
@@ -154,7 +154,9 @@ impl FromStr for Transmission {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> Result<Self> {
-        // convert all the hex digits to a string of bits
+        // convert all the hex digits to a string of bits.
+        // so, yeah. I realize that I should just operate on a byte array, but
+        // this just seemed easier given the time contstraint
         let s = input
             .chars()
             .map(|ch| {
@@ -179,20 +181,15 @@ fn from_bin(input: &str) -> Result<usize, ParseIntError> {
     usize::from_str_radix(input, 2)
 }
 
-// used for checking if a char is valid binary
-fn is_bin_digit(c: char) -> bool {
-    c.is_digit(2)
-}
-
 // extract a version u8 from the input
 fn version(input: &str) -> IResult<&str, usize> {
-    map_res(take_while_m_n(3, 3, is_bin_digit), from_bin)(input)
+    map_res(take(3_usize), from_bin)(input)
 }
 
 // Length type 0 has 15 bits specifying a number
 fn length_bits(input: &str) -> IResult<&str, Length> {
     let (input, v) = map_res(
-        preceded(tag("0"), take_while_m_n(15, 15, is_bin_digit)),
+        preceded(tag("0"), take(15_usize)),
         from_bin,
     )(input)?;
 
@@ -202,7 +199,7 @@ fn length_bits(input: &str) -> IResult<&str, Length> {
 // Length type 1 has 11 bits specifying a number
 fn length_packets(input: &str) -> IResult<&str, Length> {
     let (input, v) = map_res(
-        preceded(tag("1"), take_while_m_n(11, 11, is_bin_digit)),
+        preceded(tag("1"), take(11_usize)),
         from_bin,
     )(input)?;
 
@@ -217,7 +214,7 @@ fn operator_length(input: &str) -> IResult<&str, Length> {
 // extract a PacketType from the input
 fn packet_type(input: &str) -> IResult<&str, PacketType> {
     let (input, code) = map_res(
-        map_res(take_while_m_n(3, 3, is_bin_digit), from_bin),
+        map_res(take(3_usize), from_bin),
         OpCode::try_from,
     )(input)?;
 
@@ -250,14 +247,14 @@ fn packet(input: &str) -> IResult<&str, Packet> {
 
 fn literal_group(input: &str) -> IResult<&str, usize> {
     map_res(
-        preceded(tag("1"), take_while_m_n(4, 4, is_bin_digit)),
+        preceded(tag("1"), take(4_usize)),
         from_bin,
     )(input)
 }
 
 fn literal_end_group(input: &str) -> IResult<&str, usize> {
     map_res(
-        preceded(tag("0"), take_while_m_n(4, 4, is_bin_digit)),
+        preceded(tag("0"), take(4_usize)),
         from_bin,
     )(input)
 }
