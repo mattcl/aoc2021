@@ -2,7 +2,7 @@ use std::{collections::BinaryHeap, convert::TryFrom};
 
 use anyhow::{anyhow, Result};
 
-use crate::generic::Location;
+use crate::generic::{prelude::*, Grid, Location};
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct Chiton(pub usize);
@@ -17,19 +17,21 @@ impl Chiton {
 pub struct Node {
     idx: usize,
     cost: usize,
+    fscore: usize,
 }
 
 impl Node {
-    pub fn new(idx: usize, cost: usize) -> Self {
-        Self { idx, cost }
+    pub fn new(idx: usize, cost: usize, fscore: usize) -> Self {
+        Self { idx, cost, fscore }
     }
 }
 
 impl Ord for Node {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         other
-            .cost
-            .cmp(&self.cost)
+            .fscore
+            .cmp(&self.fscore)
+            // .then_with(|| other.cost.cmp(&self.cost))
             .then_with(|| self.idx.cmp(&other.idx))
     }
 }
@@ -40,61 +42,25 @@ impl PartialOrd for Node {
     }
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct Grid {
-    locations: Vec<Vec<Chiton>>,
-    rows: usize,
-    cols: usize,
+pub type ChitonGrid = Grid<Chiton>;
+
+impl Scalable for ChitonGrid {}
+
+pub trait Pathfinding: GridLike + Scalable {
+    fn shortest(&self, scale: usize, start: &Location, end: &Location) -> Option<usize>;
 }
 
-impl Grid {
-    pub fn bottom_right(&self) -> Location {
-        Location::new(self.rows - 1, self.cols - 1)
-    }
-
-    pub fn scaled_bottom_right(&self, scale: usize) -> Location {
-        Location::new(self.rows * scale - 1, self.cols * scale - 1)
-    }
-
-    pub fn get(&self, location: &Location) -> Option<&Chiton> {
-        self.locations
-            .get(location.row)
-            .and_then(|r| r.get(location.col))
-    }
-
-    pub fn get_scaled(&self, location: &Location, scale: usize) -> Option<Chiton> {
-        // we're out of bounds here
-        let r_fac = location.row / self.rows;
-        let c_fac = location.col / self.cols;
-        if r_fac >= scale || c_fac >= scale {
-            return None;
-        }
-
-        let row = location.row % self.rows;
-        let col = location.col % self.cols;
-        self.locations
-            .get(row)
-            .and_then(|r| r.get(col))
-            .copied()
-            .map(|chiton| {
-                let mut v = chiton.0 + r_fac + c_fac;
-                if v > 9 {
-                    v = v % 10 + 1;
-                }
-                Chiton(v)
-            })
-    }
-
-    pub fn shortest(&self, scale: usize, start: &Location, end: &Location) -> Option<usize> {
-        let size = (self.rows * scale) * (self.cols * scale);
+impl Pathfinding for ChitonGrid {
+    fn shortest(&self, scale: usize, start: &Location, end: &Location) -> Option<usize> {
+        let size = (self.rows() * scale) * (self.cols() * scale);
         let largest = size * 9;
         let mut lowest = vec![largest; size];
 
-        let s_idx = start.as_rm_index(self.rows * scale);
-        let e_idx = end.as_rm_index(self.rows * scale);
+        let s_idx = start.as_rm_index(self.rows() * scale);
+        let e_idx = end.as_rm_index(self.rows() * scale);
 
         let mut heap = BinaryHeap::new();
-        heap.push(Node::new(s_idx, 0));
+        heap.push(Node::new(s_idx, 0, start.manhattan_dist(end)));
         lowest[s_idx] = 0;
 
         while let Some(cur) = heap.pop() {
@@ -106,13 +72,19 @@ impl Grid {
                 continue;
             }
 
-            let loc = Location::from_rm_index(cur.idx, self.rows * scale);
+            let loc = Location::from_rm_index(cur.idx, self.rows() * scale);
 
             for n in loc.orthogonal_neighbors() {
-                if let Some(chiton) = self.get_scaled(&n, scale) {
-                    let n_idx = n.as_rm_index(self.rows * scale);
-
-                    let next = Node::new(n_idx, cur.cost + chiton.0);
+                if let Some(chiton) = self.get_scaled(&n, scale, |chiton, r_fac, c_fac| {
+                    let mut v = chiton.0 + r_fac + c_fac;
+                    if v > 9 {
+                        v = v % 10 + 1;
+                    }
+                    Chiton(v)
+                }) {
+                    let n_idx = n.as_rm_index(self.rows() * scale);
+                    let base = cur.cost + chiton.0;
+                    let next = Node::new(n_idx, base, base + n.manhattan_dist(end));
 
                     if next.cost < lowest[next.idx] {
                         lowest[next.idx] = next.cost;
@@ -126,7 +98,7 @@ impl Grid {
     }
 }
 
-impl TryFrom<Vec<String>> for Grid {
+impl TryFrom<Vec<String>> for ChitonGrid {
     type Error = anyhow::Error;
 
     fn try_from(value: Vec<String>) -> Result<Self> {
@@ -143,14 +115,7 @@ impl TryFrom<Vec<String>> for Grid {
             })
             .collect::<Result<Vec<Vec<Chiton>>>>()?;
 
-        let rows = locations.len();
-        let cols = locations.get(0).map(|r| r.len()).unwrap_or_default();
-
-        Ok(Self {
-            locations,
-            rows,
-            cols,
-        })
+        Self::try_from(locations)
     }
 }
 
@@ -183,41 +148,6 @@ mod tests {
         assert_eq!(
             grid.shortest(1, &Location::new(0, 0), &grid.bottom_right()),
             Some(40)
-        );
-    }
-
-    #[test]
-    fn scale() {
-        let input = test_input(
-            "
-            8
-            ",
-        );
-        let grid = Grid::try_from(input).expect("could not parse input");
-        let scale = 5;
-        assert_eq!(
-            grid.get_scaled(&Location::new(0, 0), scale),
-            Some(Chiton(8))
-        );
-        assert_eq!(
-            grid.get_scaled(&Location::new(1, 1), scale),
-            Some(Chiton(1))
-        );
-        assert_eq!(
-            grid.get_scaled(&Location::new(1, 4), scale),
-            Some(Chiton(4))
-        );
-        assert_eq!(
-            grid.get_scaled(&Location::new(2, 2), scale),
-            Some(Chiton(3))
-        );
-        assert_eq!(
-            grid.get_scaled(&Location::new(3, 3), scale),
-            Some(Chiton(5))
-        );
-        assert_eq!(
-            grid.get_scaled(&Location::new(4, 4), scale),
-            Some(Chiton(7))
         );
     }
 

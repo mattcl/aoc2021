@@ -1,10 +1,10 @@
-use std::convert::TryFrom;
+use std::{convert::TryFrom, ops::Deref};
 
 use anyhow::{anyhow, bail, Result};
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 
-use crate::generic::Location;
+use crate::generic::{prelude::*, Grid, Location};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Basin {
@@ -18,10 +18,18 @@ impl Basin {
     }
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct HeightMap {
-    locations: Vec<Vec<i64>>,
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct Risk(pub i64);
+
+impl Deref for Risk {
+    type Target = i64;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
+
+pub type HeightMap = Grid<Risk>;
 
 impl HeightMap {
     pub fn total_risk(&self) -> i64 {
@@ -50,23 +58,23 @@ impl HeightMap {
                 let value = self.locations[row][col];
                 if loc
                     .north()
-                    .and_then(|l| self.get(l))
-                    .map(|other| other > value)
+                    .and_then(|l| self.get(&l))
+                    .map(|other| other > &value)
                     .unwrap_or(true)
                     && loc
                         .south()
-                        .and_then(|l| self.get(l))
-                        .map(|other| other > value)
+                        .and_then(|l| self.get(&l))
+                        .map(|other| other > &value)
                         .unwrap_or(true)
                     && loc
                         .east()
-                        .and_then(|l| self.get(l))
-                        .map(|other| other > value)
+                        .and_then(|l| self.get(&l))
+                        .map(|other| other > &value)
                         .unwrap_or(true)
                     && loc
                         .west()
-                        .and_then(|l| self.get(l))
-                        .map(|other| other > value)
+                        .and_then(|l| self.get(&l))
+                        .map(|other| other > &value)
                         .unwrap_or(true)
                 {
                     points.push(loc);
@@ -90,45 +98,39 @@ impl HeightMap {
 
     pub fn recur(&self, cur: Location, basin: &mut Basin, checked: &mut FxHashSet<Location>) {
         checked.insert(cur);
-        if self.get(cur) == Some(9) {
+        if matches!(self.get(&cur), Some(a) if a.0 == 9) {
             return;
         }
 
         basin.size += 1;
 
-        if let Some(north) = cur.north().and_then(|l| self.get(l).map(|_| l)) {
+        if let Some(north) = cur.north().and_then(|l| self.get(&l).map(|_| l)) {
             if !checked.contains(&north) {
                 self.recur(north, basin, checked);
             }
         }
 
-        if let Some(south) = cur.south().and_then(|l| self.get(l).map(|_| l)) {
+        if let Some(south) = cur.south().and_then(|l| self.get(&l).map(|_| l)) {
             if !checked.contains(&south) {
                 self.recur(south, basin, checked);
             }
         }
 
-        if let Some(east) = cur.east().and_then(|l| self.get(l).map(|_| l)) {
+        if let Some(east) = cur.east().and_then(|l| self.get(&l).map(|_| l)) {
             if !checked.contains(&east) {
                 self.recur(east, basin, checked);
             }
         }
 
-        if let Some(west) = cur.west().and_then(|l| self.get(l).map(|_| l)) {
+        if let Some(west) = cur.west().and_then(|l| self.get(&l).map(|_| l)) {
             if !checked.contains(&west) {
                 self.recur(west, basin, checked);
             }
         }
     }
 
-    pub fn get(&self, loc: Location) -> Option<i64> {
-        self.locations
-            .get(loc.row)
-            .and_then(|r| r.get(loc.col).copied())
-    }
-
     pub fn risk(&self, loc: Location) -> Option<i64> {
-        self.get(loc).map(|v| v + 1)
+        self.get(&loc).map(|v| v.0 + 1)
     }
 }
 
@@ -142,14 +144,14 @@ impl TryFrom<Vec<String>> for HeightMap {
                 s.chars()
                     .map(|ch| {
                         ch.to_digit(10)
-                            .map(|d| d as i64)
+                            .map(|d| Risk(d as i64))
                             .ok_or_else(|| anyhow!("Invalid characters"))
                     })
-                    .collect::<Result<Vec<i64>>>()
+                    .collect::<Result<Vec<Risk>>>()
             })
-            .collect::<Result<Vec<Vec<i64>>>>()?;
+            .collect::<Result<Vec<Vec<Risk>>>>()?;
 
-        Ok(HeightMap { locations })
+        Self::try_from(locations)
     }
 }
 
