@@ -11,6 +11,7 @@ pub mod heightmap;
 pub mod navigation;
 pub mod octopus;
 pub mod polymer;
+pub mod probe;
 pub mod sonar;
 pub mod ssd;
 pub mod submarine;
