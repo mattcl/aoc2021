@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, num::ParseIntError, str::FromStr};
+use std::{convert::TryFrom, fmt, num::ParseIntError, str::FromStr};
 
 use anyhow::{anyhow, bail, Result};
 use nom::{
@@ -20,6 +20,22 @@ pub enum OpCode {
     Greater,
     Less,
     Equal,
+}
+
+impl fmt::Display for OpCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let v = match self {
+            Self::Sum => "+",
+            Self::Product => "*",
+            Self::Minimum => "min",
+            Self::Maximum => "max",
+            Self::Literal => "Literal",
+            Self::Greater => ">",
+            Self::Less => "<",
+            Self::Equal => "==",
+        };
+        write!(f, "{}", v)
+    }
 }
 
 impl TryFrom<usize> for OpCode {
@@ -111,6 +127,28 @@ impl PacketType {
     }
 }
 
+impl fmt::Display for PacketType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Literal(v) => {
+                write!(f, "{}", v)
+            }
+            Self::Operator { code, packets, .. } => {
+                write!(
+                    f,
+                    "({} {})",
+                    code,
+                    packets
+                        .iter()
+                        .map(|p| p.to_string())
+                        .collect::<Vec<String>>()
+                        .join(" ")
+                )
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Packet {
     version: usize,
@@ -135,6 +173,12 @@ impl Packet {
     }
 }
 
+impl fmt::Display for Packet {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.type_id)
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Transmission {
     packets: Vec<Packet>,
@@ -147,6 +191,10 @@ impl Transmission {
 
     pub fn value(&self) -> usize {
         self.packets.iter().fold(0, |acc, p| acc + p.value())
+    }
+
+    pub fn packets(&self) -> &Vec<Packet> {
+        &self.packets
     }
 }
 
