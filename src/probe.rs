@@ -1,5 +1,4 @@
 use anyhow::{bail, Result};
-use rustc_hash::FxHashSet;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Target {
@@ -128,7 +127,7 @@ pub struct Launcher;
 
 impl Launcher {
     pub fn launch(&self, target: &Target) -> (i64, usize) {
-        let mut cache: FxHashSet<Probe> = FxHashSet::default();
+        let mut size = 0_usize;
         let min_vx = (0.5 * ((target.x_min as f64 * 8_f64 + 1_f64).sqrt() - 1_f64)).ceil() as i64;
         let max_vx = target.x_max;
 
@@ -175,7 +174,7 @@ impl Launcher {
                         let p = probe.point_at(t);
                         if target.contains(p) {
                             // this probe would be valid
-                            cache.insert(probe);
+                            size += 1;
                             let cur_max = probe.yt(probe.vy.min(t));
                             if cur_max > max {
                                 max = cur_max;
@@ -193,7 +192,7 @@ impl Launcher {
                 }
             }
         }
-        (max, cache.len())
+        (max, size)
     }
 }
 
