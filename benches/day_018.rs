@@ -8,7 +8,7 @@ pub fn bench(c: &mut Criterion) {
         let lines = load_input("018").expect("could not load input");
         let homework = Homework::try_from(lines).expect("could not parse input");
 
-        b.iter(|| homework.sum().expect("could not find sum"));
+        b.iter(|| homework.sum().expect("could not find sum").magnitude());
     });
     group.bench_function(
         "part 2 finding largest magnitude of any two elements",
