@@ -1,5 +1,6 @@
 use criterion::criterion_main;
 
+mod combined;
 mod day_001;
 mod day_002;
 mod day_003;
@@ -38,4 +39,5 @@ criterion_main! {
     day_016::benches,
     day_017::benches,
     day_018::benches,
+    combined::benches,
 }
