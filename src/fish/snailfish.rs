@@ -143,6 +143,10 @@ impl Pair {
                         self.left = Element::Num(0);
                     }
 
+                    if l == 0 && r == 0 {
+                        return None;
+                    }
+
                     if r > 0 {
                         self.right += r;
                     }
@@ -160,6 +164,10 @@ impl Pair {
                 if let Some((l, r)) = p.recur_explode(depth + 1, action_taken) {
                     if depth == 3 {
                         self.right = Element::Num(0);
+                    }
+
+                    if l == 0 && r == 0 {
+                        return None;
                     }
 
                     if l > 0 {
