@@ -1,5 +1,6 @@
 use anyhow::{anyhow, bail, Result};
 use itertools::Itertools;
+use rayon::prelude::*;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::{convert::TryFrom, fmt, hash::Hash, iter::FromIterator, str::FromStr};
 
@@ -152,7 +153,7 @@ pub struct Measurement {
 pub struct Scanner {
     index: usize,
     beacons: Vec<Beacon>,
-    /// A mapping between a beacn and its distances to other beacons in the
+    /// A mapping between a beacon and its distances to other beacons in the
     /// scanner. So the idea is that the distances between any two beacons is
     /// constant regardless of what scanner reads them. Hopefully this lets me
     /// more quickly find the matching beacons. In this case, we're storing the
@@ -248,6 +249,25 @@ impl Scanner {
         None
     }
 
+    pub fn par_intersection<'a>(&self, other: &'a Self) -> Option<Vec<(&Beacon, &'a Beacon)>> {
+        let res: Vec<_> = self
+            .dist_map
+            .par_iter()
+            .enumerate()
+            .filter_map(|(idx, dists)| {
+                other
+                    .find_by_distances(dists)
+                    .map(|found| (&self.beacons[idx], &other.beacons[found]))
+            })
+            .collect();
+
+        if res.len() < Self::THRESHOLD {
+            return None;
+        }
+
+        Some(res)
+    }
+
     pub fn find_by_distances(&self, distances: &FxHashSet<Measurement>) -> Option<usize> {
         for (idx, dists) in self.dist_map.iter().enumerate() {
             if distances.intersection(dists).count() >= Self::THRESHOLD - 1 {
@@ -256,6 +276,14 @@ impl Scanner {
         }
 
         None
+    }
+
+    pub fn par_find_by_distances(&self, distances: &FxHashSet<Measurement>) -> Option<usize> {
+        self.dist_map
+            .par_iter()
+            .enumerate()
+            .find_any(|(_, dists)| distances.intersection(dists).count() >= Self::THRESHOLD - 1)
+            .map(|(idx, _)| idx)
     }
 
     pub fn get(&self, index: usize) -> Option<&Beacon> {
@@ -323,23 +351,32 @@ impl Mapper {
             beacons.insert(*b);
         }
 
+        let mut already_checked: FxHashSet<(usize, usize)> = FxHashSet::default();
+
         loop {
-            for r_idx in solved.iter().copied().collect::<Vec<usize>>() {
-                for p_idx in pending.iter().copied().collect::<Vec<usize>>() {
+            for r_idx in solved.clone().iter() {
+                for p_idx in pending.clone().iter() {
+                    let cache_key = (*r_idx.min(p_idx), *r_idx.max(p_idx));
+                    if already_checked.contains(&cache_key) {
+                        continue;
+                    }
+
                     if let Some(intersection) =
-                        self.scanners[r_idx].intersection(&self.scanners[p_idx])
+                        self.scanners[*r_idx].par_intersection(&self.scanners[*p_idx])
                     {
                         if let Some((rot, offset)) = self.find_offset(&intersection) {
-                            if let Some(s) = self.scanners.get_mut(p_idx) {
+                            if let Some(s) = self.scanners.get_mut(*p_idx) {
                                 s.transform(rot, &offset.coords);
                                 for b in &s.beacons {
                                     beacons.insert(*b);
                                 }
-                                pending.remove(&p_idx);
-                                solved.insert(p_idx);
+                                pending.remove(p_idx);
+                                solved.insert(*p_idx);
                                 break;
                             }
                         }
+                    } else {
+                        already_checked.insert(cache_key);
                     }
                 }
             }
@@ -362,7 +399,7 @@ impl Mapper {
 
     fn check_rotation(&self, rot: usize, intersection: &[(&Beacon, &Beacon)]) -> Option<Beacon> {
         let mut prev: Option<Beacon> = None;
-        for (a, b) in intersection.iter() {
+        for (a, b) in intersection.iter().take(Scanner::THRESHOLD) {
             let delta = a.offset(&b.rotation(rot));
             if let Some(p) = prev {
                 if delta != p {
