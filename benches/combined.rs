@@ -13,6 +13,7 @@ use aoc::{
     octopus,
     polymer::Polymerizer,
     probe::{Launcher, Target},
+    scanner::Mapper,
     sonar::Report,
     ssd::Solver,
     submarine::{AimableSubmarine, Moveable, Submarine},
@@ -20,6 +21,7 @@ use aoc::{
     vents,
 };
 use criterion::{black_box, criterion_group, Criterion};
+use rustc_hash::FxHashSet;
 use std::{convert::TryFrom, str::FromStr, time::Duration};
 
 pub fn bench(c: &mut Criterion) {
@@ -174,6 +176,15 @@ pub fn bench(c: &mut Criterion) {
             homework
                 .largest_magnitude_of_pairs()
                 .expect("could not find magnitude");
+
+            // 019
+            let lines = load_input("019").expect("could not load input");
+            let mut mapper = Mapper::try_from(lines).expect("could not parse input");
+            let mut beacons = FxHashSet::default();
+            mapper.correlate(&mut beacons);
+            mapper
+                .largest_distance()
+                .expect("could not find largest distance");
         })
     });
     group.finish();
