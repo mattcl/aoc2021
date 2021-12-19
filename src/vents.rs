@@ -129,11 +129,11 @@ impl FromStr for Line {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct Grid {
+pub struct Vents {
     lines: Vec<Line>,
 }
 
-impl Grid {
+impl Vents {
     pub fn new(lines: Vec<Line>) -> Self {
         Self { lines }
     }
@@ -159,7 +159,7 @@ impl Grid {
     }
 }
 
-impl TryFrom<&Vec<String>> for Grid {
+impl TryFrom<&Vec<String>> for Vents {
     type Error = anyhow::Error;
 
     fn try_from(input: &Vec<String>) -> Result<Self> {
@@ -175,7 +175,7 @@ impl TryFrom<&Vec<String>> for Grid {
             })
             .collect::<Result<Vec<Line>>>()?;
 
-        Ok(Grid::new(lines))
+        Ok(Vents::new(lines))
     }
 }
 
@@ -283,7 +283,7 @@ mod tests {
                 5,5 -> 8,2
                 ",
             );
-            let mut grid = Grid::try_from(&input).expect("Could not construct grid");
+            let mut grid = Vents::try_from(&input).expect("Could not construct grid");
             grid.prune_unmappable();
             grid.prune_diagonal();
             assert_eq!(grid.count_multi_overlap(), 5);
@@ -305,7 +305,7 @@ mod tests {
                 5,5 -> 8,2
                 ",
             );
-            let mut grid = Grid::try_from(&input).expect("Could not construct grid");
+            let mut grid = Vents::try_from(&input).expect("Could not construct grid");
             grid.prune_unmappable();
             assert_eq!(grid.count_multi_overlap(), 12);
         }

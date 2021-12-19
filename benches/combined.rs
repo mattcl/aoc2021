@@ -10,7 +10,7 @@ use aoc::{
     generic::prelude::*,
     heightmap::HeightMap,
     navigation::Program,
-    octopus,
+    octopus::OctopusGrid,
     polymer::Polymerizer,
     probe::{Launcher, Target},
     scanner::Mapper,
@@ -18,7 +18,7 @@ use aoc::{
     ssd::Solver,
     submarine::{AimableSubmarine, Moveable, Submarine},
     util::{load_input, parse_input},
-    vents,
+    vents::Vents,
 };
 use criterion::{black_box, criterion_group, Criterion};
 use rustc_hash::FxHashSet;
@@ -67,7 +67,7 @@ pub fn bench(c: &mut Criterion) {
 
             // 005
             let lines = load_input("005").expect("could not load input");
-            let mut grid = vents::Grid::try_from(&lines).expect("Could not construct grid");
+            let mut grid = Vents::try_from(&lines).expect("Could not construct grid");
             grid.count_multi_overlap();
             grid.prune_diagonal();
             grid.count_multi_overlap();
@@ -111,7 +111,7 @@ pub fn bench(c: &mut Criterion) {
 
             // 011
             let lines = load_input("011").expect("could not load input");
-            let mut grid = octopus::Grid::try_from(lines).expect("could not parse input");
+            let mut grid = OctopusGrid::try_from(lines).expect("could not parse input");
             grid.simulate(black_box(100));
             grid.simulate_until_sync();
 

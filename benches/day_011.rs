@@ -1,4 +1,4 @@
-use aoc::{octopus::Grid, util::load_input};
+use aoc::{octopus::OctopusGrid, util::load_input};
 use criterion::{black_box, criterion_group, Criterion};
 use std::convert::TryFrom;
 
@@ -6,7 +6,7 @@ pub fn bench(c: &mut Criterion) {
     let mut group = c.benchmark_group("011 dumbo octopus");
     group.bench_function("part 1 simulating 100 steps", |b| {
         let lines = load_input("011").expect("could not load input");
-        let grid = Grid::try_from(lines).expect("could not parse input");
+        let grid = OctopusGrid::try_from(lines).expect("could not parse input");
 
         b.iter(|| {
             let mut grid = grid.clone();
@@ -15,7 +15,7 @@ pub fn bench(c: &mut Criterion) {
     });
     group.bench_function("part 2 finding the first sync step", |b| {
         let lines = load_input("011").expect("could not load input");
-        let grid = Grid::try_from(lines).expect("could not parse input");
+        let grid = OctopusGrid::try_from(lines).expect("could not parse input");
 
         b.iter(|| {
             let mut grid = grid.clone();

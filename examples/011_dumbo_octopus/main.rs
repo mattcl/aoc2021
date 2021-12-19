@@ -1,13 +1,13 @@
 use std::convert::TryFrom;
 
 use aoc::{
-    octopus::Grid,
+    octopus::OctopusGrid,
     util::{load_input, Solution},
 };
 
 fn main() {
     let lines = load_input("011").expect("could not load input");
-    let mut grid = Grid::try_from(lines).expect("could not parse input");
+    let mut grid = OctopusGrid::try_from(lines).expect("could not parse input");
 
     println!(
         "{}",

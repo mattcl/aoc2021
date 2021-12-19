@@ -1,9 +1,9 @@
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 
 use anyhow::{anyhow, Result};
 use rustc_hash::FxHashSet;
 
-use crate::generic::Location;
+use crate::generic::{prelude::*, Grid, Location};
 
 #[derive(Debug, Clone, Copy, Default, Hash, Eq, PartialEq)]
 pub struct Octopus(pub i64);
@@ -32,30 +32,24 @@ impl From<i64> for Octopus {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct Grid {
-    octopuses: Vec<Vec<Octopus>>,
-    total_count: usize,
+pub struct OctopusGrid {
+    octopuses: Grid<Octopus>,
     syncd_genrations: Vec<usize>,
     generations: usize,
 }
 
-impl Grid {
+impl OctopusGrid {
     /// Charge the octopus specified by `loc` and return `true` if it flashes
     pub fn charge(&mut self, loc: &Location) -> bool {
         self.octopuses
-            .get_mut(loc.row)
-            .and_then(|r| r.get_mut(loc.col))
+            .get_mut(loc)
             .map(|oct| oct.charge())
             .unwrap_or(false)
     }
 
     /// Reset the octopus specified by `loc`
     pub fn reset(&mut self, loc: &Location) {
-        if let Some(oct) = self
-            .octopuses
-            .get_mut(loc.row)
-            .and_then(|r| r.get_mut(loc.col))
-        {
+        if let Some(oct) = self.octopuses.get_mut(loc) {
             oct.reset();
         }
     }
@@ -78,7 +72,7 @@ impl Grid {
         }
 
         loop {
-            if self.total_count == self.step() {
+            if self.octopuses.size() == self.step() {
                 break self.generations;
             }
         }
@@ -90,8 +84,8 @@ impl Grid {
         self.generations += 1;
         // 1. increase every octopus by 1, storing the locations of flashes
         let mut flashes: FxHashSet<Location> = FxHashSet::default();
-        for row in 0..self.octopuses.len() {
-            for col in 0..self.octopuses[0].len() {
+        for row in 0..self.octopuses.rows() {
+            for col in 0..self.octopuses.cols() {
                 let loc = (row, col).into();
                 if self.charge(&loc) {
                     self.reset(&loc);
@@ -108,7 +102,7 @@ impl Grid {
         // this point
 
         let count = flashes.len();
-        if count == self.total_count {
+        if count == self.octopuses.size() {
             self.syncd_genrations.push(self.generations);
         }
 
@@ -146,22 +140,17 @@ impl Grid {
     }
 }
 
-impl TryFrom<Vec<String>> for Grid {
+impl TryFrom<Vec<String>> for OctopusGrid {
     type Error = anyhow::Error;
 
     fn try_from(value: Vec<String>) -> Result<Self> {
-        let mut total_count = 0;
         let octopuses = value
             .iter()
             .map(|s| {
                 s.chars()
                     .map(|ch| {
                         ch.to_digit(10)
-                            .map(|d| {
-                                let o = Octopus::new(d as i64);
-                                total_count += 1;
-                                o
-                            })
+                            .map(|d| Octopus::new(d as i64))
                             .ok_or_else(|| anyhow!("Invalid characters"))
                     })
                     .collect::<Result<Vec<Octopus>>>()
@@ -169,8 +158,7 @@ impl TryFrom<Vec<String>> for Grid {
             .collect::<Result<Vec<Vec<Octopus>>>>()?;
 
         Ok(Self {
-            octopuses,
-            total_count,
+            octopuses: octopuses.try_into()?,
             syncd_genrations: Vec::new(),
             generations: 0,
         })
@@ -211,7 +199,7 @@ mod tests {
                 5283751526
                 ",
             );
-            let mut grid = Grid::try_from(input).expect("could not construt grid");
+            let mut grid = OctopusGrid::try_from(input).expect("could not construt grid");
             assert_eq!(grid.simulate(100), 1656);
         }
 
@@ -231,7 +219,7 @@ mod tests {
                 5283751526
                 ",
             );
-            let mut grid = Grid::try_from(input).expect("could not construt grid");
+            let mut grid = OctopusGrid::try_from(input).expect("could not construt grid");
             assert_eq!(grid.simulate_until_sync(), 195);
         }
     }
