@@ -136,7 +136,7 @@ impl Image {
                 if self.pixels.contains(&p)
                     || (algo.is_light(0) && self.gen % 2 == 1 && !self.bounds.contains(&p))
                 {
-                    acc + 2_usize.pow(8 - i as u32)
+                    acc + (1 << (8 - i))
                 } else {
                     acc
                 }
