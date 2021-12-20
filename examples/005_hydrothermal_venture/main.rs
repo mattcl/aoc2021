@@ -1,9 +1,7 @@
 use std::convert::TryFrom;
 
-use aoc::{
-    util::{load_input, Solution},
-    vents::Vents,
-};
+use aoc::vents::Vents;
+use aoc_helpers::{load_input, Solution};
 
 fn main() {
     let lines = load_input("005").expect("could not load input");

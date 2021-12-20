@@ -216,7 +216,7 @@ impl TryFrom<Vec<String>> for Polymerizer {
 #[cfg(test)]
 mod tests {
     mod polymerizer {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 

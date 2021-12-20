@@ -1,4 +1,5 @@
-use aoc::{camera::Manual, util::load_input};
+use aoc::camera::Manual;
+use aoc_helpers::load_input;
 use criterion::{criterion_group, Criterion};
 use std::convert::TryFrom;
 

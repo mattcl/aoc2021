@@ -1,9 +1,7 @@
 use std::convert::TryFrom;
 
-use aoc::{
-    fish::Homework,
-    util::{load_input, Solution},
-};
+use aoc::fish::Homework;
+use aoc_helpers::{load_input, Solution};
 
 fn main() {
     let lines = load_input("018").expect("could not load input");

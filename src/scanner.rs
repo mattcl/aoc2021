@@ -430,7 +430,7 @@ impl TryFrom<Vec<String>> for Mapper {
 #[cfg(test)]
 mod tests {
     mod scanner {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 
@@ -452,7 +452,7 @@ mod tests {
     }
 
     mod mapping {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 

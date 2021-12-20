@@ -1,4 +1,5 @@
-use aoc::{diagnostic::Diagnostic, util::load_input};
+use aoc::diagnostic::Diagnostic;
+use aoc_helpers::load_input;
 use criterion::{criterion_group, Criterion};
 
 use std::convert::TryFrom;

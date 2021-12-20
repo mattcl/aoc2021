@@ -1,4 +1,5 @@
-use aoc::{fish::Sim, util::load_input};
+use aoc::fish::Sim;
+use aoc_helpers::load_input;
 use criterion::{black_box, criterion_group, Criterion};
 
 use std::str::FromStr;

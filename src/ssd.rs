@@ -377,7 +377,7 @@ mod tests {
     }
 
     mod solver {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 

@@ -1,7 +1,5 @@
-use aoc::{
-    navigation::Program,
-    util::{load_input, parse_input},
-};
+use aoc::navigation::Program;
+use aoc_helpers::{load_input, parse_input};
 use criterion::{criterion_group, Criterion};
 
 pub fn bench(c: &mut Criterion) {

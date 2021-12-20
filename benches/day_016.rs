@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
-use aoc::{decoder::Transmission, util::load_input};
+use aoc::decoder::Transmission;
+use aoc_helpers::load_input;
 use criterion::{criterion_group, Criterion};
 
 pub fn bench(c: &mut Criterion) {

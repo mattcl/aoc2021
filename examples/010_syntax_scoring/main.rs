@@ -1,7 +1,5 @@
-use aoc::{
-    navigation::Program,
-    util::{load_input, parse_input, Solution},
-};
+use aoc::navigation::Program;
+use aoc_helpers::{load_input, parse_input, Solution};
 
 fn main() {
     let input = load_input("010").expect("could not load input");

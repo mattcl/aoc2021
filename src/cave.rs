@@ -238,7 +238,7 @@ impl TryFrom<Vec<String>> for CaveSystem {
 #[cfg(test)]
 mod tests {
     mod cave_system {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 

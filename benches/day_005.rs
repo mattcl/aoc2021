@@ -1,4 +1,5 @@
-use aoc::{util::load_input, vents::Vents};
+use aoc::vents::Vents;
+use aoc_helpers::load_input;
 use criterion::{criterion_group, Criterion};
 
 use std::convert::TryFrom;

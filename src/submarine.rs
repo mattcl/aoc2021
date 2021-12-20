@@ -125,7 +125,7 @@ mod tests {
 
     mod submarine {
         use super::super::*;
-        use crate::util::{parse_input, test_input};
+        use aoc_helpers::util::{parse_input, test_input};
 
         #[test]
         fn movement() {
@@ -152,7 +152,7 @@ mod tests {
 
     mod aimable_submarine {
         use super::super::*;
-        use crate::util::{parse_input, test_input};
+        use aoc_helpers::util::{parse_input, test_input};
 
         #[test]
         fn movement() {

@@ -1,9 +1,7 @@
 use std::convert::TryFrom;
 
-use aoc::{
-    polymer::Polymerizer,
-    util::{load_input, Solution},
-};
+use aoc::polymer::Polymerizer;
+use aoc_helpers::{load_input, Solution};
 
 fn main() {
     let lines = load_input("014").expect("could not load input");

@@ -1,9 +1,8 @@
 use std::convert::TryFrom;
 
-use aoc::{
-    scanner::Mapper,
-    util::{load_input, Solution},
-};
+use aoc::scanner::Mapper;
+use aoc_helpers::{load_input, Solution};
+
 use rustc_hash::FxHashSet;
 
 fn main() {

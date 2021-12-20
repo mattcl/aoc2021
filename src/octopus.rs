@@ -3,7 +3,7 @@ use std::convert::{TryFrom, TryInto};
 use anyhow::{anyhow, Result};
 use rustc_hash::FxHashSet;
 
-use crate::generic::{prelude::*, Grid, Location};
+use aoc_helpers::generic::{prelude::*, Grid, Location};
 
 #[derive(Debug, Clone, Copy, Default, Hash, Eq, PartialEq)]
 pub struct Octopus(pub i64);
@@ -179,7 +179,7 @@ mod tests {
     }
 
     mod grid {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 

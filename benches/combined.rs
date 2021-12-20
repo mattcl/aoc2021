@@ -2,12 +2,11 @@ use aoc::{
     bingo::{Board, Runner},
     camera::Manual,
     cave::CaveSystem,
-    chiton::{ChitonGrid, Pathfinding},
+    chiton::ChitonGrid,
     crab::{ArithmeticSub, LinearSub, Swarm},
     decoder::Transmission,
     diagnostic::Diagnostic,
     fish::{Homework, Sim},
-    generic::prelude::*,
     heightmap::HeightMap,
     navigation::Program,
     octopus::OctopusGrid,
@@ -17,9 +16,9 @@ use aoc::{
     sonar::Report,
     ssd::Solver,
     submarine::{AimableSubmarine, Moveable, Submarine},
-    util::{load_input, parse_input},
     vents::Vents,
 };
+use aoc_helpers::{generic::prelude::*, load_input, parse_input};
 use criterion::{black_box, criterion_group, Criterion};
 use rustc_hash::FxHashSet;
 use std::{convert::TryFrom, str::FromStr, time::Duration};

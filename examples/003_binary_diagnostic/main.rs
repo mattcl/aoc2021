@@ -1,5 +1,5 @@
 use aoc::diagnostic::Diagnostic;
-use aoc::util::{load_input, Solution};
+use aoc_helpers::{load_input, Solution};
 use std::convert::TryFrom;
 
 fn main() {

@@ -1,9 +1,7 @@
 use std::convert::TryFrom;
 
-use aoc::{
-    octopus::OctopusGrid,
-    util::{load_input, Solution},
-};
+use aoc::octopus::OctopusGrid;
+use aoc_helpers::{load_input, Solution};
 
 fn main() {
     let lines = load_input("011").expect("could not load input");

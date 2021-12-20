@@ -1,4 +1,5 @@
-use aoc::{fish::Homework, util::load_input};
+use aoc::fish::Homework;
+use aoc_helpers::load_input;
 use criterion::{criterion_group, Criterion};
 use std::convert::TryFrom;
 

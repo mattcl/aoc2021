@@ -2,7 +2,7 @@ use anyhow::{anyhow, bail, Result};
 use rustc_hash::FxHashSet;
 use std::{convert::TryFrom, fmt, str::FromStr};
 
-use crate::generic::Location;
+use aoc_helpers::generic::Location;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Instruction {
@@ -115,7 +115,7 @@ impl TryFrom<&[String]> for Page {
         let dots = value
             .iter()
             .map(|l| Location::from_str(l))
-            .collect::<Result<FxHashSet<Location>>>()?;
+            .collect::<aoc_helpers::error::Result<FxHashSet<Location>>>()?;
         Ok(dots.into())
     }
 }
@@ -172,7 +172,7 @@ impl TryFrom<Vec<String>> for Manual {
 mod tests {
 
     mod manual {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 

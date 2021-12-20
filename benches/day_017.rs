@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
-use aoc::{
-    probe::{Launcher, Target},
-    util::load_input,
-};
+use aoc::probe::{Launcher, Target};
+use aoc_helpers::load_input;
 use criterion::{criterion_group, Criterion};
 
 pub fn bench(c: &mut Criterion) {

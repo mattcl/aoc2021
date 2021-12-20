@@ -51,7 +51,7 @@ impl TryFrom<Vec<String>> for Report {
 
 #[cfg(test)]
 mod tests {
-    use crate::util;
+    use aoc_helpers::util;
 
     use super::*;
     use std::convert::TryInto;

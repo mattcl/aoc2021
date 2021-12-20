@@ -403,7 +403,7 @@ mod tests {
     }
 
     mod board {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 
@@ -452,7 +452,7 @@ mod tests {
     }
 
     mod fast_board {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 
@@ -501,7 +501,7 @@ mod tests {
     }
 
     mod runner {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 

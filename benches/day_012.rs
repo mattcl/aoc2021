@@ -1,4 +1,5 @@
-use aoc::{cave::CaveSystem, util::load_input};
+use aoc::cave::CaveSystem;
+use aoc_helpers::load_input;
 use criterion::{criterion_group, Criterion};
 use std::convert::TryFrom;
 

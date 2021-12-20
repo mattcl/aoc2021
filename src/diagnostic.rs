@@ -123,7 +123,7 @@ impl TryFrom<&Vec<String>> for Diagnostic {
 
 #[cfg(test)]
 mod tests {
-    use crate::util::test_input;
+    use aoc_helpers::util::test_input;
 
     use super::*;
     use std::convert::TryFrom;

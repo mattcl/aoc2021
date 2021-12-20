@@ -1,7 +1,5 @@
-use aoc::{
-    bingo::{FastBoard, Runner},
-    util::{load_input, Solution},
-};
+use aoc::bingo::{FastBoard, Runner};
+use aoc_helpers::{load_input, Solution};
 use std::convert::TryFrom;
 
 fn main() {

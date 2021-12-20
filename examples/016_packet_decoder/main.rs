@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
-use aoc::{
-    decoder::Transmission,
-    util::{load_input, Solution},
-};
+use aoc::decoder::Transmission;
+use aoc_helpers::{load_input, Solution};
 
 fn main() {
     let line = load_input("016")

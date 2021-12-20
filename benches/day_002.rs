@@ -1,7 +1,5 @@
-use aoc::{
-    submarine::{AimableSubmarine, Moveable, Submarine},
-    util::{load_input, parse_input},
-};
+use aoc::submarine::{AimableSubmarine, Moveable, Submarine};
+use aoc_helpers::{load_input, parse_input};
 use criterion::{criterion_group, Criterion};
 
 pub fn bench(c: &mut Criterion) {

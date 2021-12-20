@@ -1,5 +1,5 @@
 use aoc::submarine::{AimableSubmarine, Moveable, Submarine};
-use aoc::util::{load_input, parse_input, Solution};
+use aoc_helpers::{load_input, parse_input, Solution};
 
 fn main() {
     let lines = load_input("002").expect("could not load input");

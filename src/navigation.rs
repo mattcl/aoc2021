@@ -211,7 +211,7 @@ mod tests {
     }
 
     mod program {
-        use crate::util::{parse_input, test_input};
+        use aoc_helpers::util::{parse_input, test_input};
 
         use super::super::*;
 

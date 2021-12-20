@@ -1,10 +1,7 @@
 use std::convert::TryFrom;
 
-use aoc::{
-    chiton::{ChitonGrid, Pathfinding},
-    generic::prelude::*,
-    util::{load_input, Solution},
-};
+use aoc::chiton::ChitonGrid;
+use aoc_helpers::{generic::prelude::*, load_input, Solution};
 
 fn main() {
     let lines = load_input("015").expect("could not load input");

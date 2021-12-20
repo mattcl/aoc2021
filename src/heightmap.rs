@@ -1,10 +1,13 @@
-use std::{convert::TryFrom, ops::Deref};
+use std::{
+    convert::{TryFrom, TryInto},
+    ops::Deref,
+};
 
 use anyhow::{anyhow, bail, Result};
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 
-use crate::generic::{prelude::*, Grid, Location};
+use aoc_helpers::generic::{prelude::*, Grid, Location};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Basin {
@@ -29,7 +32,15 @@ impl Deref for Risk {
     }
 }
 
-pub type HeightMap = Grid<Risk>;
+pub struct HeightMap(Grid<Risk>);
+
+impl Deref for HeightMap {
+    type Target = Grid<Risk>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 impl HeightMap {
     pub fn total_risk(&self) -> i64 {
@@ -151,14 +162,14 @@ impl TryFrom<Vec<String>> for HeightMap {
             })
             .collect::<Result<Vec<Vec<Risk>>>>()?;
 
-        Self::try_from(locations)
+        Ok(Self(locations.try_into()?))
     }
 }
 
 #[cfg(test)]
 mod tests {
     mod heightmap {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 

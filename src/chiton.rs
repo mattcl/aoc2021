@@ -1,8 +1,12 @@
-use std::{collections::BinaryHeap, convert::TryFrom};
+use std::{
+    collections::BinaryHeap,
+    convert::{TryFrom, TryInto},
+    ops::Deref,
+};
 
 use anyhow::{anyhow, Result};
 
-use crate::generic::{prelude::*, Grid, Location};
+use aoc_helpers::generic::{prelude::*, Grid, Location};
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct Chiton(pub usize);
@@ -42,16 +46,18 @@ impl PartialOrd for Node {
     }
 }
 
-pub type ChitonGrid = Grid<Chiton>;
+pub struct ChitonGrid(Grid<Chiton>);
 
-impl Scalable for ChitonGrid {}
+impl Deref for ChitonGrid {
+    type Target = Grid<Chiton>;
 
-pub trait Pathfinding: GridLike + Scalable {
-    fn shortest(&self, scale: usize, start: &Location, end: &Location) -> Option<usize>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
-impl Pathfinding for ChitonGrid {
-    fn shortest(&self, scale: usize, start: &Location, end: &Location) -> Option<usize> {
+impl ChitonGrid {
+    pub fn shortest(&self, scale: usize, start: &Location, end: &Location) -> Option<usize> {
         let size = (self.rows() * scale) * (self.cols() * scale);
         let largest = size * 9;
         let mut lowest = vec![largest; size];
@@ -115,13 +121,13 @@ impl TryFrom<Vec<String>> for ChitonGrid {
             })
             .collect::<Result<Vec<Vec<Chiton>>>>()?;
 
-        Self::try_from(locations)
+        Ok(Self(locations.try_into()?))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::util::test_input;
+    use aoc_helpers::util::test_input;
 
     use super::*;
 
@@ -141,9 +147,9 @@ mod tests {
             2311944581
             ",
         );
-        let grid = Grid::try_from(input).expect("could not parse input");
-        assert_eq!(grid.rows, 10);
-        assert_eq!(grid.cols, 10);
+        let grid = ChitonGrid::try_from(input).expect("could not parse input");
+        assert_eq!(grid.rows(), 10);
+        assert_eq!(grid.cols(), 10);
         assert_eq!(grid.bottom_right(), Location::new(9, 9));
         assert_eq!(
             grid.shortest(1, &Location::new(0, 0), &grid.bottom_right()),
@@ -167,10 +173,10 @@ mod tests {
             2311944581
             ",
         );
-        let grid = Grid::try_from(input).expect("could not parse input");
+        let grid = ChitonGrid::try_from(input).expect("could not parse input");
         let scale = 5;
-        assert_eq!(grid.rows, 10);
-        assert_eq!(grid.cols, 10);
+        assert_eq!(grid.rows(), 10);
+        assert_eq!(grid.cols(), 10);
         assert_eq!(grid.scaled_bottom_right(scale), Location::new(49, 49));
         assert_eq!(
             grid.shortest(

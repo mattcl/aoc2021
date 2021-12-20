@@ -1,9 +1,7 @@
 use std::convert::TryFrom;
 
-use aoc::{
-    heightmap::HeightMap,
-    util::{load_input, Solution},
-};
+use aoc::heightmap::HeightMap;
+use aoc_helpers::{load_input, Solution};
 
 fn main() {
     let lines = load_input("009").expect("could not load input");

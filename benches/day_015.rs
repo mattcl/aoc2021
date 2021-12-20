@@ -1,8 +1,5 @@
-use aoc::{
-    chiton::{ChitonGrid, Pathfinding},
-    generic::prelude::*,
-    util::load_input,
-};
+use aoc::chiton::ChitonGrid;
+use aoc_helpers::{generic::prelude::*, load_input};
 use criterion::{criterion_group, Criterion};
 use std::convert::TryFrom;
 

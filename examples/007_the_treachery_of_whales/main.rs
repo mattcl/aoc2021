@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
-use aoc::{
-    crab::{ArithmeticSub, LinearSub, Swarm},
-    util::{load_input, Solution},
-};
+use aoc::crab::{ArithmeticSub, LinearSub, Swarm};
+use aoc_helpers::{load_input, Solution};
 
 fn main() {
     let lines = load_input("007").expect("could not load input");

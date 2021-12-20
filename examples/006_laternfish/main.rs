@@ -1,7 +1,5 @@
-use aoc::{
-    fish::Sim,
-    util::{load_input, Solution},
-};
+use aoc::fish::Sim;
+use aoc_helpers::{load_input, Solution};
 use std::str::FromStr;
 
 fn main() {

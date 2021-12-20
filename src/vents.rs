@@ -263,7 +263,7 @@ mod tests {
     }
 
     mod grid {
-        use crate::util::test_input;
+        use aoc_helpers::util::test_input;
 
         use super::super::*;
 

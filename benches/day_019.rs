@@ -1,4 +1,5 @@
-use aoc::{scanner::Mapper, util::load_input};
+use aoc::scanner::Mapper;
+use aoc_helpers::load_input;
 use criterion::{criterion_group, Criterion};
 use rustc_hash::FxHashSet;
 use std::convert::TryFrom;

@@ -1,9 +1,7 @@
 use std::convert::TryFrom;
 
-use aoc::{
-    camera::Manual,
-    util::{load_input, Solution},
-};
+use aoc::camera::Manual;
+use aoc_helpers::{load_input, Solution};
 
 fn main() {
     let lines = load_input("013").expect("could not load input");

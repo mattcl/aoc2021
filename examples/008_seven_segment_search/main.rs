@@ -1,9 +1,7 @@
 use std::convert::TryFrom;
 
-use aoc::{
-    ssd::Solver,
-    util::{load_input, Solution},
-};
+use aoc::ssd::Solver;
+use aoc_helpers::{load_input, Solution};
 
 fn main() {
     let lines = load_input("008").expect("could not load input");
