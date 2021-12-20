@@ -15,4 +15,5 @@ pub mod scanner;
 pub mod sonar;
 pub mod ssd;
 pub mod submarine;
+pub mod trench;
 pub mod vents;

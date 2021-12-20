@@ -16,6 +16,7 @@ use aoc::{
     sonar::Report,
     ssd::Solver,
     submarine::{AimableSubmarine, Moveable, Submarine},
+    trench::Enhancer,
     vents::Vents,
 };
 use aoc_helpers::{generic::prelude::*, load_input, parse_input};
@@ -25,7 +26,7 @@ use std::{convert::TryFrom, str::FromStr, time::Duration};
 
 pub fn bench(c: &mut Criterion) {
     let mut group = c.benchmark_group("AoC Twenty Twenty-One");
-    group.measurement_time(Duration::new(10, 0));
+    group.measurement_time(Duration::new(15, 0));
     group.bench_function("All Problems", |b| {
         b.iter(|| {
             // 001
@@ -184,6 +185,12 @@ pub fn bench(c: &mut Criterion) {
             mapper
                 .largest_distance()
                 .expect("could not find largest distance");
+
+            // 020
+            let lines = load_input("020").expect("could not load input");
+            let mut enhancer = Enhancer::try_from(lines).expect("could not parse input");
+            enhancer.enhance_times(2).num_lit();
+            enhancer.enhance_times(48).num_lit();
         })
     });
     group.finish();
