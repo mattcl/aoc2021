@@ -101,12 +101,19 @@ impl Image {
             ..Self::default()
         };
 
-        let iter = ((self.bounds.min_row - 1)..=(self.bounds.max_row + 1))
+        // In parallel, travel down each column, checking every potential pixel
+        // in the column. This is done to take advantage of the property that
+        // if you move a window "down" the value for the new window is the
+        // bottom 6 bits of the old window plus the bottom 3 bits of the new
+        // window, and thus we can drastically cut down on the number of
+        // `set.contains` operations we need to perform.
+        let iter = ((self.bounds.min_col - 1)..=(self.bounds.max_col + 1))
             .into_par_iter()
-            .map(move |row| {
-                ((self.bounds.min_col - 1)..=(self.bounds.max_col + 1)).filter_map(move |col| {
+            .map(move |col| {
+                let mut cache: Option<usize> = None;
+                ((self.bounds.min_row - 1)..=(self.bounds.max_row + 1)).filter_map(move |row| {
                     let pix = (row, col);
-                    let val = self.value_for_square(&pix, algo);
+                    let val = self.value_for_square(&pix, algo, &mut cache);
 
                     if algo.is_light(val) {
                         Some(pix)
@@ -127,20 +134,48 @@ impl Image {
         self.pixels.len()
     }
 
-    pub fn value_for_square(&self, pix: &Pixel, algo: &Algorithm) -> usize {
-        NEIGHBOR_ORDER
-            .iter()
-            .enumerate()
-            .fold(0, |acc, (i, (r, c))| {
-                let p: Pixel = (pix.0 + r, pix.1 + c);
-                if self.pixels.contains(&p)
-                    || (algo.is_light(0) && self.gen % 2 == 1 && !self.bounds.contains(&p))
-                {
-                    acc + (1 << (8 - i))
-                } else {
-                    acc
-                }
-            })
+    pub fn value_for_square(
+        &self,
+        pix: &Pixel,
+        algo: &Algorithm,
+        cache: &mut Option<usize>,
+    ) -> usize {
+        let mut top = 0;
+        let mut start = 0_usize;
+
+        // Since we're moving "down" every column, we know that the bottom 6
+        // bits of the previous value will be the top 6 bits of the new value
+        // therefore, no need to actually check all of those top 6 bits again.
+        // On the first time through this process, we have to calculate
+        // everything.
+        if let Some(val) = cache {
+            // cleave the top 3 bits
+            top = *val & 0b000111111;
+
+            // shift 3 positions
+            top <<= 3;
+            start = 6;
+        }
+
+        let res = (start..NEIGHBOR_ORDER.len()).fold(top, |acc, i| {
+            let (r, c) = NEIGHBOR_ORDER[i];
+            let p: Pixel = (pix.0 + r, pix.1 + c);
+            // so, yeah. The situation with the algorithm for the examples
+            // not starting with a # vs the algorithm in the input starting
+            // with a #. It's not the cleanest, but still. The rationalle is
+            // that it's faster to check the bounds condition than the set
+            // contains operation.
+            if (algo.is_light(0) && self.gen % 2 == 1 && !self.bounds.contains(&p))
+                || self.pixels.contains(&p)
+            {
+                acc + (1 << (8 - i))
+            } else {
+                acc
+            }
+        });
+
+        *cache = Some(res);
+        res
     }
 
     pub fn set_pixel(&mut self, pixel: &Pixel) {

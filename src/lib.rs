@@ -5,6 +5,7 @@ pub mod chiton;
 pub mod crab;
 pub mod decoder;
 pub mod diagnostic;
+pub mod dirac;
 pub mod fish;
 pub mod heightmap;
 pub mod navigation;

@@ -6,6 +6,7 @@ use aoc::{
     crab::{ArithmeticSub, LinearSub, Swarm},
     decoder::Transmission,
     diagnostic::Diagnostic,
+    dirac::{DeterministicDie, Game, QuantumGame},
     fish::{Homework, Sim},
     heightmap::HeightMap,
     navigation::Program,
@@ -191,6 +192,15 @@ pub fn bench(c: &mut Criterion) {
             let mut enhancer = Enhancer::try_from(lines).expect("could not parse input");
             enhancer.enhance_times(2).num_lit();
             enhancer.enhance_times(48).num_lit();
+
+            // 021
+            let lines = load_input("021").expect("could not load input");
+            let mut game: Game<DeterministicDie> =
+                Game::try_from(lines.as_ref()).expect("could not parse input");
+            game.play().expect("unable to play game");
+
+            let quantum = QuantumGame::try_from(lines.as_ref()).expect("could not parse input");
+            quantum.play();
         })
     });
     group.finish();
