@@ -12,6 +12,7 @@ pub mod navigation;
 pub mod octopus;
 pub mod polymer;
 pub mod probe;
+pub mod reactor;
 pub mod scanner;
 pub mod sonar;
 pub mod ssd;

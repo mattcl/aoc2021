@@ -13,6 +13,7 @@ use aoc::{
     octopus::OctopusGrid,
     polymer::Polymerizer,
     probe::{Launcher, Target},
+    reactor::{Cuboid, Instructions, Reactor},
     scanner::Mapper,
     sonar::Report,
     ssd::Solver,
@@ -201,6 +202,17 @@ pub fn bench(c: &mut Criterion) {
 
             let quantum = QuantumGame::try_from(lines.as_ref()).expect("could not parse input");
             quantum.play();
+
+            // 022
+            let lines = load_input("022").expect("could not load input");
+            let instructions = Instructions::try_from(lines).expect("could not parse input");
+            let mut reactor = Reactor::default();
+            reactor.reboot(&instructions);
+
+            let limit = Cuboid::new((-50, -50, -50).into(), (50, 50, 50).into());
+
+            reactor.volume(black_box(&Some(limit)));
+            reactor.volume(black_box(&None));
         })
     });
     group.finish();
