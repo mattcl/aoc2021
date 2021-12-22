@@ -1,9 +1,3 @@
-//! So can we just store cubes and calculate the intersections of cubes via
-//! sweeping a plane through the region of space? Like we would for intersection
-//! of rectangles but with another dimension?
-//!
-//! How to handle the situations where some regions turn things on and others
-//! turn things off? And there's a sequence to it...
 use anyhow::{anyhow, bail, Result};
 use itertools::Itertools;
 use nom::{
@@ -178,31 +172,31 @@ impl Cuboid {
         self.width() * self.height() * self.depth()
     }
 
-    pub fn intersects(&self, other: &Self) -> bool {
+    pub fn intersection(&self, other: &Self) -> Option<Self> {
         let int_b_x = self.begin.x.max(other.begin.x);
-        let int_b_y = self.begin.y.max(other.begin.y);
-        let int_b_z = self.begin.z.max(other.begin.z);
         let int_e_x = self.end.x.min(other.end.x);
+        if int_b_x > int_e_x {
+            return None;
+        }
+
+        let int_b_y = self.begin.y.max(other.begin.y);
         let int_e_y = self.end.y.min(other.end.y);
+        if int_b_y > int_e_y {
+            return None;
+        }
+
+        let int_b_z = self.begin.z.max(other.begin.z);
         let int_e_z = self.end.z.min(other.end.z);
 
-        int_b_x <= int_e_x && int_b_y <= int_e_y && int_b_z <= int_e_z
-    }
+        if int_b_z > int_e_z {
+            return None;
+        }
 
-    pub fn intersection(&self, other: &Self) -> Self {
-        Self::new(
-            (
-                self.begin.x.max(other.begin.x),
-                self.begin.y.max(other.begin.y),
-                self.begin.z.max(other.begin.z),
+        Some(
+            Self::new(
+                (int_b_x, int_b_y, int_b_z).into(),
+                (int_e_x, int_e_y, int_e_z).into(),
             )
-                .into(),
-            (
-                self.end.x.min(other.end.x),
-                self.end.y.min(other.end.y),
-                self.end.z.min(other.end.z),
-            )
-                .into(),
         )
     }
 
@@ -237,16 +231,9 @@ impl Region {
         }
     }
 
-    pub fn intersects(&self, other: &Self) -> bool {
-        self.cuboid.intersects(&other.cuboid)
-    }
-
-    pub fn intersection(&self, other: &Self) -> Self {
-        Self::new(
-            self.index,
-            self.cuboid.intersection(&other.cuboid),
-            !self.on,
-        )
+    pub fn intersection(&self, other: &Self) -> Option<Self> {
+        self.cuboid.intersection(&other.cuboid)
+            .map(|cube| Self::new(self.index, cube, !self.on))
     }
 
     pub fn intersects_plane(&self, z: i64) -> bool {
@@ -355,8 +342,8 @@ impl Reactor {
 
             for fr_idx in 0..final_regions.len() {
                 let f = final_regions[fr_idx];
-                if f.intersects(region) {
-                    final_regions.push(f.intersection(region));
+                if let Some(intersect) = f.intersection(region) {
+                    final_regions.push(intersect);
                 }
             }
 
@@ -368,6 +355,8 @@ impl Reactor {
         final_regions.iter().fold(0, |acc, r| acc + r.volume())
     }
 
+    /// Sigh. This was a trap. It felt a lot like the 2018 problem with the
+    /// fabric. But it's a different question being asked
     pub fn compute_volume_of_on_cubes(&self, limit: &Option<Cuboid>) -> i64 {
         // sort by Z values
         let mut regions: Vec<Region> = if let Some(limit) = limit {
