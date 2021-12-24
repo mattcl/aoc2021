@@ -5,6 +5,7 @@ use std::{
     convert::TryFrom,
     fmt,
     hash::{Hash, Hasher},
+    iter::FromIterator,
 };
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -157,12 +158,11 @@ impl<const N: usize> Room<N> {
         let desired_room_entrance = kind.desired_room_entrance();
         Hall::VALID_WAITING_POSITIONS
             .iter()
-            .copied()
-            .filter(move |p| hall.state[*p] == EMPTY)
+            .filter(move |p| hall.state[**p] == EMPTY)
             .filter_map(move |hall_pos| {
                 if !empty && !complete && !accepting_desired {
-                    hall.can_move_between(desired_room_entrance, hall_pos)
-                        .then(|| (ch, hall_pos))
+                    hall.can_move_between(desired_room_entrance, *hall_pos)
+                        .then(|| (ch, *hall_pos))
                 } else {
                     None
                 }
@@ -236,17 +236,18 @@ impl Hall {
 pub struct Node<const N: usize> {
     state: Burrow<N>,
     cost: usize,
+    f: usize,
 }
 
 impl<const N: usize> Node<N> {
-    pub fn new(state: Burrow<N>, cost: usize) -> Self {
-        Self { state, cost }
+    pub fn new(state: Burrow<N>, cost: usize, f: usize) -> Self {
+        Self { state, cost, f }
     }
 }
 
 impl<const N: usize> Ord for Node<N> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        other.cost.cmp(&self.cost)
+        other.f.cmp(&self.f)
     }
 }
 
@@ -263,24 +264,96 @@ pub struct Burrow<const N: usize> {
 }
 
 impl<const N: usize> Burrow<N> {
+    // pub fn key(&self) -> String {
+    //     String::from_iter(
+    //         self.hall.state.
+    //             iter()
+    //             .chain(self.rooms[0].state.iter())
+    //             .chain(self.rooms[1].state.iter())
+    //             .chain(self.rooms[2].state.iter())
+    //             .chain(self.rooms[3].state.iter()))
+    // }
+
+    pub fn key(&self) -> u64 {
+        self.hall.state.
+            iter()
+            .chain(self.rooms[0].state.iter())
+            .chain(self.rooms[1].state.iter())
+            .chain(self.rooms[2].state.iter())
+            .chain(self.rooms[3].state.iter())
+            .fold(0, |acc, ch| {
+                acc * 10 + (ch.to_digit(16).unwrap_or_default() as u64)
+            })
+    }
+
     pub fn complete(&self) -> bool {
         self.rooms.iter().all(|r| r.complete())
     }
 
     pub fn minimize(&self) -> Option<usize> {
-        let mut lowest: FxHashMap<Self, usize> = FxHashMap::default();
-        lowest.insert(*self, 0);
+        let mut lowest: FxHashMap<u64, usize> = FxHashMap::default();
+        lowest.insert(self.key(), 0);
         let mut heap = BinaryHeap::new();
-        heap.push(Node::new(*self, 0));
+        heap.push(Node::new(*self, 0, 0));
 
         while let Some(cur) = heap.pop() {
             if cur.state.complete() {
                 return Some(cur.cost);
             }
 
-            // if cur.cost > *lowest.get(&cur.state).unwrap_or(&usize::MAX) {
+            // while this seems fine, the cache lookup performance is just way
+            // too slow because it has to be hashed instead of direct index
+            // if cur.cost > *lowest.get(&cur.state.key()).unwrap_or(&usize::MAX) {
             //     continue;
             // }
+
+            // if we can move directly, this is the thing with the lowest cost
+            let mut any_direct = false;
+            for (room_idx, room) in cur.state.rooms.iter().enumerate() {
+                if !room.empty() && !room.accepting_desired() {
+                    let ch = room.peek();
+                    let kind = AmphipodType::try_from(ch).unwrap();
+                    let desired = cur.state.rooms[kind.desired_room()];
+
+                    if desired.accepting_desired() {
+                        let origin_kind = AmphipodType::try_from(room.desired).unwrap();
+                        let origin_entrance = origin_kind.desired_room_entrance();
+                        let desired_room_entrance = kind.desired_room_entrance();
+
+                        if cur.state.hall.can_move_between(origin_entrance, desired_room_entrance) {
+                            any_direct = true;
+                            let mut new_state = cur.state;
+                            new_state.rooms[room_idx].pop();
+                            new_state.rooms[kind.desired_room()].push(ch);
+                            let entrance_dist = (origin_entrance as i64 - desired_room_entrance as i64).abs() + 1;
+                            let dist = room.push_distance() + desired.push_distance() +  entrance_dist as usize;
+                            let cost = cur.cost + dist * kind.energy_per_step();
+                            let new_node = Node::new(new_state, cost, cost);
+
+                            lowest
+                                .entry(new_node.state.key())
+                                .and_modify(|e| {
+                                    if new_node.cost < *e {
+                                        *e = new_node.cost;
+                                        heap.push(new_node.clone());
+                                    }
+                                })
+                                .or_insert_with(|| {
+                                    let cost = new_node.cost;
+                                    heap.push(new_node);
+                                    cost
+                                });
+                        }
+                    }
+                }
+            }
+
+            // these are optimal, so don't bother checking anything else (they
+            // would seem sub-optimal compared to the halway movements or some
+            // of the room -> hallway moves
+            if any_direct {
+                continue;
+            }
 
             // find a list of all the new game states
             // for all items in the hall, attempt to move them to accepting rooms
@@ -289,10 +362,11 @@ impl<const N: usize> Burrow<N> {
                 let mut new_state = cur.state;
                 new_state.rooms[kind.desired_room()].push(*ch);
                 new_state.hall.unset(pos);
-                let new_node = Node::new(new_state, cur.cost + dist * kind.energy_per_step());
+                let cost = cur.cost + dist * kind.energy_per_step();
+                let new_node = Node::new(new_state, cost, cost);
 
                 lowest
-                    .entry(new_node.state)
+                    .entry(new_node.state.key())
                     .and_modify(|e| {
                         if new_node.cost < *e {
                             *e = new_node.cost;
@@ -309,6 +383,10 @@ impl<const N: usize> Burrow<N> {
             // for all items in rooms where they don't belong
             for (room_idx, room) in cur.state.rooms.iter().enumerate() {
                 let room_kind = AmphipodType::try_from(room.desired).unwrap();
+                if room.complete() {
+                    continue;
+                }
+
                 for (ch, pos) in room.valid_hall_moves(&cur.state.hall) {
                     let mut new_state = cur.state;
                     let kind = AmphipodType::try_from(ch).unwrap();
@@ -317,10 +395,15 @@ impl<const N: usize> Burrow<N> {
                         + (room_kind.desired_room_entrance() as i32 - pos as i32).abs() as usize;
                     new_state.rooms[room_idx].pop();
                     new_state.hall.set(pos, ch);
-                    let new_node = Node::new(new_state, cur.cost + dist * kind.energy_per_step());
+                    let cost = cur.cost + dist * kind.energy_per_step();
+                    // let h = (pos as i32 - kind.desired_room_entrance() as i32).abs() as usize
+                    //     + new_state.rooms[kind.desired_room()].push_distance();
+                    let new_node =
+                        // Node::new(new_state, cost, cost + (dist + h) * kind.energy_per_step());
+                        Node::new(new_state, cost, cost);
 
                     lowest
-                        .entry(new_node.state)
+                        .entry(new_node.state.key())
                         .and_modify(|e| {
                             if new_node.cost < *e {
                                 *e = new_node.cost;

@@ -4,7 +4,7 @@ use criterion::{criterion_group, Criterion};
 use std::convert::TryFrom;
 
 pub fn bench(c: &mut Criterion) {
-    let mut group = c.benchmark_group("023 smoke basin");
+    let mut group = c.benchmark_group("023 amphipod");
     group.bench_function("part 1 small burrow", |b| {
         let lines = load_input("023").expect("could not load input");
         let burrow = SmallBurrow::try_from(lines.clone()).expect("could not parse input");
