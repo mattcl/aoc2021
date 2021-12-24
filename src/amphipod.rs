@@ -5,7 +5,6 @@ use std::{
     collections::BinaryHeap,
     convert::TryFrom,
     fmt,
-    hash::{Hash, Hasher},
     // iter::FromIterator,
 };
 
@@ -74,20 +73,11 @@ impl fmt::Display for AmphipodType {
 
 pub const EMPTY: char = ' ';
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Room<const N: usize> {
     desired: char,
     capacity: usize,
     state: [char; N],
-}
-
-impl<const N: usize> Hash for Room<N> {
-    fn hash<H>(&self, state: &mut H)
-    where
-        H: Hasher,
-    {
-        self.state.hash(state);
-    }
 }
 
 impl<const N: usize> Room<N> {
@@ -276,8 +266,9 @@ impl<const N: usize> Burrow<N> {
     // }
 
     pub fn key(&self) -> u64 {
-        self.hall.state.
-            iter()
+        self.hall
+            .state
+            .iter()
             .chain(self.rooms[0].state.iter())
             .chain(self.rooms[1].state.iter())
             .chain(self.rooms[2].state.iter())
@@ -321,13 +312,20 @@ impl<const N: usize> Burrow<N> {
                         let origin_entrance = origin_kind.desired_room_entrance();
                         let desired_room_entrance = kind.desired_room_entrance();
 
-                        if cur.state.hall.can_move_between(origin_entrance, desired_room_entrance) {
+                        if cur
+                            .state
+                            .hall
+                            .can_move_between(origin_entrance, desired_room_entrance)
+                        {
                             any_direct = true;
                             let mut new_state = cur.state;
                             new_state.rooms[room_idx].pop();
                             new_state.rooms[kind.desired_room()].push(ch);
-                            let entrance_dist = (origin_entrance as i64 - desired_room_entrance as i64).abs() + 1;
-                            let dist = room.push_distance() + desired.push_distance() +  entrance_dist as usize;
+                            let entrance_dist =
+                                (origin_entrance as i64 - desired_room_entrance as i64).abs() + 1;
+                            let dist = room.push_distance()
+                                + desired.push_distance()
+                                + entrance_dist as usize;
                             let cost = cur.cost + dist * kind.energy_per_step();
                             let new_node = Node::new(new_state, cost, cost);
 
@@ -540,7 +538,7 @@ impl TryFrom<Vec<String>> for Amphipod {
         let small = SmallBurrow::try_from(&value)?;
         let large = LargeBurrow::try_from(&value)?;
 
-        Ok(Self {small, large})
+        Ok(Self { small, large })
     }
 }
 
@@ -550,7 +548,6 @@ impl Solver for Amphipod {
 
     type P1 = usize;
     type P2 = usize;
-
 
     fn part_one(&mut self) -> <Self as aoc_helpers::Solver>::P1 {
         self.small.minimize().expect("could not solve part 1")
