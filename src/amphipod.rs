@@ -1,11 +1,12 @@
 use anyhow::{anyhow, bail, Result};
+use aoc_helpers::Solver;
 use rustc_hash::FxHashMap;
 use std::{
     collections::BinaryHeap,
     convert::TryFrom,
     fmt,
     hash::{Hash, Hasher},
-    iter::FromIterator,
+    // iter::FromIterator,
 };
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -439,10 +440,10 @@ impl<const N: usize> Default for Burrow<N> {
 
 pub type SmallBurrow = Burrow<2>;
 
-impl TryFrom<Vec<String>> for SmallBurrow {
+impl TryFrom<&Vec<String>> for SmallBurrow {
     type Error = anyhow::Error;
 
-    fn try_from(value: Vec<String>) -> Result<Self> {
+    fn try_from(value: &Vec<String>) -> Result<Self> {
         // so the parsing is dumb
         let mut burrow = SmallBurrow::default();
         let chars = value
@@ -492,10 +493,10 @@ impl fmt::Display for SmallBurrow {
 
 pub type LargeBurrow = Burrow<4>;
 
-impl TryFrom<Vec<String>> for LargeBurrow {
+impl TryFrom<&Vec<String>> for LargeBurrow {
     type Error = anyhow::Error;
 
-    fn try_from(value: Vec<String>) -> Result<Self> {
+    fn try_from(value: &Vec<String>) -> Result<Self> {
         // so the parsing is dumb
         let mut burrow = LargeBurrow::default();
         let chars = value
@@ -524,6 +525,39 @@ impl TryFrom<Vec<String>> for LargeBurrow {
         }
 
         Ok(burrow)
+    }
+}
+
+pub struct Amphipod {
+    small: SmallBurrow,
+    large: LargeBurrow,
+}
+
+impl TryFrom<Vec<String>> for Amphipod {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self> {
+        let small = SmallBurrow::try_from(&value)?;
+        let large = LargeBurrow::try_from(&value)?;
+
+        Ok(Self {small, large})
+    }
+}
+
+impl Solver for Amphipod {
+    const ID: &'static str = "amphipod";
+    const DAY: usize = 23;
+
+    type P1 = usize;
+    type P2 = usize;
+
+
+    fn part_one(&mut self) -> <Self as aoc_helpers::Solver>::P1 {
+        self.small.minimize().expect("could not solve part 1")
+    }
+
+    fn part_two(&mut self) -> <Self as aoc_helpers::Solver>::P1 {
+        self.large.minimize().expect("could not solve part 1")
     }
 }
 
@@ -594,7 +628,7 @@ mod tests {
             ###########
             ",
         );
-        let burrow = SmallBurrow::try_from(input).expect("could not parse input");
+        let burrow = SmallBurrow::try_from(&input).expect("could not parse input");
         let cost = burrow.minimize().expect("could not solve");
         assert_eq!(cost, 12521)
     }
@@ -612,7 +646,7 @@ mod tests {
             ###########
             ",
         );
-        let burrow = LargeBurrow::try_from(input).expect("could not parse input");
+        let burrow = LargeBurrow::try_from(&input).expect("could not parse input");
         let cost = burrow.minimize().expect("could not solve");
         assert_eq!(cost, 44169)
     }

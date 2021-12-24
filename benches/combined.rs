@@ -1,5 +1,5 @@
 use aoc::{
-    amphipod::{LargeBurrow, SmallBurrow},
+    amphipod::Amphipod,
     bingo::{Board, Runner},
     camera::Manual,
     cave::CaveSystem,
@@ -17,12 +17,12 @@ use aoc::{
     reactor::{Cuboid, Instructions, Reactor},
     scanner::Mapper,
     sonar::Report,
-    ssd::Solver,
+    ssd,
     submarine::{AimableSubmarine, Moveable, Submarine},
     trench::Enhancer,
     vents::Vents,
 };
-use aoc_helpers::{generic::prelude::*, load_input, parse_input};
+use aoc_helpers::{generic::prelude::*, load_input, parse_input, Solver};
 use criterion::{black_box, criterion_group, Criterion};
 use rustc_hash::FxHashSet;
 use std::{convert::TryFrom, str::FromStr, time::Duration};
@@ -93,7 +93,7 @@ pub fn bench(c: &mut Criterion) {
 
             // 008
             let lines = load_input("008").expect("could not load input");
-            let solver = Solver::try_from(lines).expect("Could not parse input");
+            let solver = ssd::Solver::try_from(lines).expect("Could not parse input");
             solver.rhs_count_known();
             solver
                 .par_rhs_values_sum()
@@ -216,12 +216,7 @@ pub fn bench(c: &mut Criterion) {
             reactor.volume(black_box(&None));
 
             // 023
-            let lines = load_input("023").expect("could not load input");
-            let small = SmallBurrow::try_from(lines.clone()).expect("could not parse input");
-            let large = LargeBurrow::try_from(lines).expect("could not parse input");
-
-            small.minimize().expect("could not find solution");
-            large.minimize().expect("could not find solution");
+            Amphipod::solve();
         })
     });
     group.finish();
