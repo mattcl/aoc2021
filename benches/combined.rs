@@ -1,4 +1,5 @@
 use aoc::{
+    amphipod::{LargeBurrow, SmallBurrow},
     bingo::{Board, Runner},
     camera::Manual,
     cave::CaveSystem,
@@ -102,7 +103,7 @@ pub fn bench(c: &mut Criterion) {
             let lines = load_input("009").expect("could not load input");
             let hm = HeightMap::try_from(lines).expect("could not parse heightmap");
             hm.total_risk();
-            hm.largest_basins().expect("coudl not find largest basins");
+            hm.largest_basins().expect("could not find largest basins");
 
             // 010
             let input = load_input("010").expect("could not load input");
@@ -213,6 +214,14 @@ pub fn bench(c: &mut Criterion) {
 
             reactor.volume(black_box(&Some(limit)));
             reactor.volume(black_box(&None));
+
+            // 023
+            let lines = load_input("023").expect("could not load input");
+            let small = SmallBurrow::try_from(lines.clone()).expect("could not parse input");
+            let large = LargeBurrow::try_from(lines).expect("could not parse input");
+
+            small.minimize().expect("could not find solution");
+            large.minimize().expect("could not find solution");
         })
     });
     group.finish();

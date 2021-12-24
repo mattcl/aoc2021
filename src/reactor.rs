@@ -192,12 +192,10 @@ impl Cuboid {
             return None;
         }
 
-        Some(
-            Self::new(
-                (int_b_x, int_b_y, int_b_z).into(),
-                (int_e_x, int_e_y, int_e_z).into(),
-            )
-        )
+        Some(Self::new(
+            (int_b_x, int_b_y, int_b_z).into(),
+            (int_e_x, int_e_y, int_e_z).into(),
+        ))
     }
 
     pub fn fully_contains(&self, other: &Self) -> bool {
@@ -232,7 +230,8 @@ impl Region {
     }
 
     pub fn intersection(&self, other: &Self) -> Option<Self> {
-        self.cuboid.intersection(&other.cuboid)
+        self.cuboid
+            .intersection(&other.cuboid)
             .map(|cube| Self::new(self.index, cube, !self.on))
     }
 

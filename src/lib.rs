@@ -1,3 +1,4 @@
+pub mod amphipod;
 pub mod bingo;
 pub mod camera;
 pub mod cave;

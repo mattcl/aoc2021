@@ -15,7 +15,7 @@ pub fn bench(c: &mut Criterion) {
         let lines = load_input("009").expect("could not load input");
         let hm = HeightMap::try_from(lines).expect("could not parse heightmap");
 
-        b.iter(|| hm.largest_basins().expect("coudl not find largest basins"))
+        b.iter(|| hm.largest_basins().expect("could not find largest basins"))
     });
     group.finish();
 }
