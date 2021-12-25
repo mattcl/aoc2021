@@ -4,7 +4,7 @@ mod tests {
     use itertools::Itertools;
 
     use crate::{
-        // alu::Computer,
+        alu::PrecompiledSolver,
         amphipod::Amphipod,
         bingo::{FastBoard, Runner},
         camera::Manual,
@@ -213,14 +213,13 @@ mod tests {
         assert_eq!(Amphipod::solve(), expected);
     }
 
-    // this is even too slow for the ignored tests
-    // #[test]
-    // #[ignore]
-    // fn day_024() {
-    //     let expected = Solution::new(29599469991739, 17153114691118);
-    //     assert_eq!(Computer::solve(), expected);
-    // }
-    //
+    #[test]
+    #[ignore]
+     fn day_024() {
+         let expected = Solution::new(29599469991739, 17153114691118);
+         assert_eq!(PrecompiledSolver::solve(), expected);
+     }
+
     #[test]
     #[ignore]
     fn day_025() {

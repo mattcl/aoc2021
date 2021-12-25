@@ -1,5 +1,5 @@
 use aoc::{
-    // alu::Computer,
+    alu::PrecompiledSolver,
     amphipod::Amphipod,
     bingo::{FastBoard, Runner},
     camera::Manual,
@@ -166,14 +166,14 @@ aoc_benches! {
         "part 1 small burrow",
         "part 2 large burrow"
     ),
-    // day 24 is not included in the benchmarks because optimizing for the
-    // input to get a reasonable runtime feels like cheating
-    // (
-    //     day_024,
-    //     Computer,
-    //     "part 1 power consumption",
-    //     "part 2 life support rating"
-    // ),
+    // So I don't know how I feel about the solution for day 24 here, since it's
+    // specifically solving inputs with the exact format of the MONAD program
+    (
+        day_024,
+        PrecompiledSolver,
+        "part 1 largest valid value",
+        "part 2 smallest valid value"
+    ),
     (
         day_025,
         Cucumber,

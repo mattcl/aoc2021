@@ -1,6 +1,6 @@
-use aoc::alu::Computer;
+use aoc::alu::PrecompiledSolver;
 use aoc_helpers::Solver;
 
 fn main() {
-    println!("{}", Computer::solve());
+    println!("{}", PrecompiledSolver::solve());
 }

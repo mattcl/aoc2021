@@ -3,6 +3,7 @@ use std::{convert::TryFrom, ops::Deref};
 
 use anyhow::{anyhow, bail, Result};
 use aoc_helpers::Solver;
+use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -300,6 +301,121 @@ impl Solver for Computer {
     fn part_two(&mut self) -> Self::P1 {
         self.explore(&self.program, false)
             .expect("could not solve program")
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct PrecompiledSolver {
+    blocks: Vec<Vec<OpCode>>,
+}
+
+impl PrecompiledSolver {
+    pub fn solve_digits(&self, digits: &mut [i64]) -> Result<u64> {
+        if digits.len() != self.blocks.len() {
+            bail!("there must be the same number of digits as blocks");
+        }
+
+        let mut stack = Vec::with_capacity(14);
+
+        for i in 0..digits.len() {
+            let (a, b, c) = self.extract_vars(i)?;
+
+            if a == 1 {
+                stack.push((i, c));
+            } else {
+                let (j, c) = stack.pop()
+                    .ok_or_else(|| anyhow!("attempted to pop empty stack!"))?;
+
+                digits[i] = digits[j] + b + c;
+
+                if digits[i] > 9 {
+                    digits[j] -= digits[i] % 9;
+                    digits[i] = 9;
+                } else if digits[i] < 1 {
+                    digits[j] += 1 - digits[i];
+                    digits[i] = 1;
+                }
+            }
+        }
+
+        Ok(digits.iter().fold(0, |acc, d| acc * 10 + *d as u64))
+    }
+
+    pub fn extract_vars(&self, block_idx: usize) -> Result<(i64, i64, i64)> {
+        let block = self.blocks
+            .get(block_idx)
+            .ok_or_else(|| anyhow!("no block {}", block_idx))?;
+        let mut vars = (0, 0, 0);
+
+        if let Some(OpCode::Div(_, Val::Raw(a))) = block.get(4) {
+            if *a != 26 && *a != 1 {
+                bail!("block {} contains invalid 'A' value", block_idx);
+            }
+
+            vars.0 = *a;
+        } else {
+            bail!("block {} does not contain 'A' value", block_idx);
+        }
+
+        if let Some(OpCode::Add(_, Val::Raw(b))) = block.get(5) {
+            vars.1 = *b;
+        } else {
+            bail!("block {} does not contain 'B' value", block_idx);
+        }
+
+        if let Some(OpCode::Add(_, Val::Raw(c))) = block.get(15) {
+            vars.2 = *c;
+        } else {
+            bail!("block {} does not contain 'C' value", block_idx);
+        }
+
+        Ok(vars)
+    }
+}
+
+impl TryFrom<Vec<String>> for PrecompiledSolver {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self> {
+        let lines = value
+            .iter()
+            .map(|v| OpCode::from_str(v))
+            .collect::<Result<Vec<OpCode>>>()?;
+
+        let mut blocks = Vec::with_capacity(14);
+
+        for chunk in &lines.into_iter().chunks(18) {
+            let block = chunk.collect::<Vec<_>>();
+            if block.len() != 18 {
+                bail!("input contains invalid or not enough blocks");
+            }
+
+            blocks.push(block);
+        }
+
+        if blocks.len() != 14 {
+            bail!("incorrect number of blocks from input {}", blocks.len());
+        }
+
+        Ok(Self {blocks})
+    }
+}
+
+impl Solver for PrecompiledSolver {
+    const ID: &'static str = "arithmetic logic unit";
+    const DAY: usize = 24;
+
+    type P1 = u64;
+    type P2 = u64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        let mut digits = [9_i64; 14];
+        self.solve_digits(&mut digits).expect("could not solve program")
+    }
+
+    fn part_two(&mut self) -> Self::P1 {
+        let mut digits = [1_i64; 14];
+        self.solve_digits(&mut digits).expect("could not solve program")
     }
 }
 
