@@ -1,4 +1,3 @@
-
 #[cfg(test)]
 mod tests {
     use aoc_helpers::{Solution, Solver};
@@ -12,6 +11,7 @@ mod tests {
         cave::CaveSystem,
         chiton::ChitonGrid,
         crab::Crabs,
+        cucumber::Cucumber,
         decoder::TransmissionWrapper,
         diagnostic::DiagnosticWrapper,
         dirac::Games,
@@ -29,7 +29,6 @@ mod tests {
         trench::Enhancer,
         vents::Vents,
     };
-
 
     #[test]
     #[ignore]
@@ -118,22 +117,28 @@ mod tests {
     #[test]
     #[ignore]
     fn day_013() {
-        let expected = Solution::new(731, "
+        let expected = Solution::new(
+            731,
+            "
 0000 0  0  00  0  0  00  0000 0  0  00
    0 0 0  0  0 0  0 0  0 0    0  0 0  0
   0  00   0  0 0  0 0    000  0  0 0
  0   0 0  0000 0  0 0    0    0  0 0
 0    0 0  0  0 0  0 0  0 0    0  0 0  0
-0000 0  0 0  0  00   00  0     00   00".to_string());
+0000 0  0 0  0  00   00  0     00   00"
+                .to_string(),
+        );
         let actual = Manual::solve();
         assert_eq!(actual.part_one, expected.part_one);
 
         // my editor cleaves trailing whitespace, so we need to do that for the
         // actual solution
-        let stripped = actual.part_two
+        let stripped = actual
+            .part_two
             .lines()
             .map(|line| line.trim_end())
-            .join("\n").to_string();
+            .join("\n")
+            .to_string();
 
         assert_eq!(stripped, expected.part_two);
     }
@@ -215,4 +220,11 @@ mod tests {
     //     let expected = Solution::new(29599469991739, 17153114691118);
     //     assert_eq!(Computer::solve(), expected);
     // }
+    //
+    #[test]
+    #[ignore]
+    fn day_025() {
+        let expected = Solution::new(278, "No part 2 for day 25".to_string());
+        assert_eq!(Cucumber::solve(), expected);
+    }
 }

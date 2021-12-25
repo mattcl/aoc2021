@@ -131,7 +131,7 @@ impl TryFrom<Vec<String>> for DiagnosticWrapper {
     type Error = anyhow::Error;
 
     fn try_from(input: Vec<String>) -> Result<Self> {
-        Ok(Self {input})
+        Ok(Self { input })
     }
 }
 
@@ -143,14 +143,12 @@ impl Solver for DiagnosticWrapper {
     type P2 = u64;
 
     fn part_one(&mut self) -> Self::P1 {
-        let d = Diagnostic::try_from(&self.input)
-            .expect("could not parse input");
+        let d = Diagnostic::try_from(&self.input).expect("could not parse input");
         d.power_consumption()
     }
 
     fn part_two(&mut self) -> Self::P2 {
-        let d = Diagnostic::try_from(&self.input)
-            .expect("could not parse input");
+        let d = Diagnostic::try_from(&self.input).expect("could not parse input");
         d.life_support_rating()
             .expect("could not get life support rating")
     }
@@ -159,13 +157,12 @@ impl Solver for DiagnosticWrapper {
     // the construction of the diagnostic that does most of the work
     fn solve() -> aoc_helpers::Solution<Self::P1, Self::P2> {
         let instance = Self::instance();
-        let d = Diagnostic::try_from(&instance.input)
-            .expect("could not parse input");
+        let d = Diagnostic::try_from(&instance.input).expect("could not parse input");
 
         aoc_helpers::Solution::new(
             d.power_consumption(),
             d.life_support_rating()
-                .expect("could not get life support rating")
+                .expect("could not get life support rating"),
         )
     }
 }

@@ -5,6 +5,7 @@ pub mod camera;
 pub mod cave;
 pub mod chiton;
 pub mod crab;
+pub mod cucumber;
 pub mod decoder;
 pub mod diagnostic;
 pub mod dirac;

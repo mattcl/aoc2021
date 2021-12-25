@@ -6,6 +6,7 @@ use aoc::{
     cave::CaveSystem,
     chiton::ChitonGrid,
     crab::Crabs,
+    cucumber::Cucumber,
     decoder::TransmissionWrapper,
     diagnostic::DiagnosticWrapper,
     dirac::Games,
@@ -28,6 +29,7 @@ use aoc_helpers::{aoc_benches, Solver};
 use criterion::criterion_main;
 
 aoc_benches! {
+    20,
     (
         day_001,
         Report,
@@ -163,7 +165,7 @@ aoc_benches! {
         Amphipod,
         "part 1 small burrow",
         "part 2 large burrow"
-    )
+    ),
     // day 24 is not included in the benchmarks because optimizing for the
     // input to get a reasonable runtime feels like cheating
     // (
@@ -172,6 +174,11 @@ aoc_benches! {
     //     "part 1 power consumption",
     //     "part 2 life support rating"
     // ),
+    (
+        day_025,
+        Cucumber,
+        "steps until stabilization"
+    )
 }
 
 criterion_main! {
