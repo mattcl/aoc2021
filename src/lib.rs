@@ -16,6 +16,7 @@ pub mod polymer;
 pub mod probe;
 pub mod reactor;
 pub mod scanner;
+pub mod solutions;
 pub mod sonar;
 pub mod ssd;
 pub mod submarine;

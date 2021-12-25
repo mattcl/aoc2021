@@ -265,7 +265,7 @@ impl<const N: usize> Burrow<N> {
     //             .chain(self.rooms[3].state.iter()))
     // }
 
-    pub fn key(&self) -> u64 {
+    pub fn key(&self) -> u128 {
         self.hall
             .state
             .iter()
@@ -274,7 +274,7 @@ impl<const N: usize> Burrow<N> {
             .chain(self.rooms[2].state.iter())
             .chain(self.rooms[3].state.iter())
             .fold(0, |acc, ch| {
-                acc * 10 + (ch.to_digit(16).unwrap_or_default() as u64)
+                acc * 10 + (ch.to_digit(16).unwrap_or_default() as u128)
             })
     }
 
@@ -283,7 +283,7 @@ impl<const N: usize> Burrow<N> {
     }
 
     pub fn minimize(&self) -> Option<usize> {
-        let mut lowest: FxHashMap<u64, usize> = FxHashMap::default();
+        let mut lowest: FxHashMap<u128, usize> = FxHashMap::default();
         lowest.insert(self.key(), 0);
         let mut heap = BinaryHeap::new();
         heap.push(Node::new(*self, 0, 0));
