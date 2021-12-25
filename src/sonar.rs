@@ -1,5 +1,7 @@
 use std::{convert::TryFrom, num::ParseIntError};
 
+use aoc_helpers::Solver;
+
 #[derive(Debug, Clone)]
 pub struct Report {
     pub depths: Vec<u64>,
@@ -46,6 +48,22 @@ impl TryFrom<Vec<String>> for Report {
                 .map(|v| v.parse())
                 .collect::<Result<Vec<u64>, ParseIntError>>()?,
         })
+    }
+}
+
+impl Solver for Report {
+    const ID: &'static str = "sonar sweep";
+    const DAY: usize = 1;
+
+    type P1 = u64;
+    type P2 = u64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.count_increases()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.count_windowed_increases()
     }
 }
 

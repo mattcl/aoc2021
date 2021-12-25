@@ -6,7 +6,10 @@ use std::{
 
 use anyhow::{anyhow, Result};
 
-use aoc_helpers::generic::{prelude::*, Grid, Location};
+use aoc_helpers::{
+    generic::{prelude::*, Grid, Location},
+    Solver,
+};
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct Chiton(pub usize);
@@ -122,6 +125,25 @@ impl TryFrom<Vec<String>> for ChitonGrid {
             .collect::<Result<Vec<Vec<Chiton>>>>()?;
 
         Ok(Self(locations.try_into()?))
+    }
+}
+
+impl Solver for ChitonGrid {
+    const ID: &'static str = "chiton";
+    const DAY: usize = 15;
+
+    type P1 = usize;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.shortest(1, &self.top_left(), &self.bottom_right())
+            .expect("could not find cheapest path")
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        let scale = 5;
+        self.shortest(scale, &self.top_left(), &self.scaled_bottom_right(scale))
+            .expect("could not find cheapest path")
     }
 }
 

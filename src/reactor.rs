@@ -1,4 +1,5 @@
 use anyhow::{anyhow, bail, Result};
+use aoc_helpers::Solver;
 use itertools::Itertools;
 use nom::{
     branch::alt,
@@ -580,6 +581,54 @@ impl Reactor {
 
     //     unique
     // }
+}
+
+#[derive(Debug, Clone)]
+pub struct Procedure {
+    instructions: Instructions,
+    reactor: Reactor,
+    limit: Cuboid,
+}
+
+impl TryFrom<Vec<String>> for Procedure {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self> {
+        let instructions = Instructions::try_from(value)?;
+        let reactor = Reactor::default();
+        let limit = Cuboid::new((-50, -50, -50).into(), (50, 50, 50).into());
+
+        Ok(Self {
+            instructions,
+            reactor,
+            limit,
+        })
+    }
+}
+
+impl Solver for Procedure {
+    const ID: &'static str = "reactor reboot";
+    const DAY: usize = 22;
+
+    type P1 = i64;
+    type P2 = i64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.reactor.volume(&Some(self.limit))
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.reactor.volume(&None)
+    }
+
+    // in this case, poor design decisions lead to the reboot happening
+    // separate from construction
+    fn instance() -> Self {
+        let mut inst = Self::try_from(Self::load_input()).expect("could not parse input");
+        inst.reactor.reboot(&inst.instructions);
+
+        inst
+    }
 }
 
 #[cfg(test)]

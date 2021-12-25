@@ -1,5 +1,7 @@
 use anyhow::{anyhow, bail, Result};
+use aoc_helpers::{parse_input, Solver};
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
+use std::convert::TryFrom;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -106,6 +108,50 @@ impl Moveable for AimableSubmarine {
 
     fn location_hash(&self) -> i64 {
         self.depth * self.pos.0
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct Subs {
+    normal: Submarine,
+    aimable: AimableSubmarine,
+    commands: Vec<Command>,
+}
+
+impl TryFrom<Vec<String>> for Subs {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self, Self::Error> {
+        let commands = parse_input(&value)?;
+
+        Ok(Self {
+            commands,
+            ..Self::default()
+        })
+    }
+}
+
+impl Solver for Subs {
+    const ID: &'static str = "dive";
+    const DAY: usize = 2;
+
+    type P1 = i64;
+    type P2 = i64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        for command in self.commands.iter() {
+            self.normal.execute(command);
+        }
+
+        self.normal.location_hash()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        for command in self.commands.iter() {
+            self.aimable.execute(command);
+        }
+
+        self.aimable.location_hash()
     }
 }
 

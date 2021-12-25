@@ -6,6 +6,7 @@ use std::{
 };
 
 use anyhow::anyhow;
+use aoc_helpers::Solver;
 use itertools::Itertools;
 use nom::{
     branch::alt,
@@ -330,6 +331,23 @@ impl TryFrom<Vec<String>> for Homework {
             .map(|s| Pair::from_str(s))
             .collect::<anyhow::Result<Vec<Pair>>>()?;
         Ok(Self { pairs })
+    }
+}
+
+impl Solver for Homework {
+    const ID: &'static str = "snailfish";
+    const DAY: usize = 18;
+
+    type P1 = i64;
+    type P2 = i64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.sum().expect("could not find sum").magnitude()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.largest_magnitude_of_pairs()
+            .expect("could not largest magnitude")
     }
 }
 

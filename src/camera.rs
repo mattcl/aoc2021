@@ -2,7 +2,7 @@ use anyhow::{anyhow, bail, Result};
 use rustc_hash::FxHashSet;
 use std::{convert::TryFrom, fmt, str::FromStr};
 
-use aoc_helpers::generic::Location;
+use aoc_helpers::{generic::Location, Solver};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Instruction {
@@ -165,6 +165,22 @@ impl TryFrom<Vec<String>> for Manual {
                 .map(|i| Instruction::from_str(i))
                 .collect::<Result<Vec<Instruction>>>()?,
         ))
+    }
+}
+
+impl Solver for Manual {
+    const ID: &'static str = "transparent origami";
+    const DAY: usize = 13;
+
+    type P1 = usize;
+    type P2 = String;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.first_instruction().count_visible()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.folded().to_string()
     }
 }
 

@@ -1,4 +1,5 @@
 use anyhow::{anyhow, bail, Result};
+use aoc_helpers::Solver;
 use rustc_hash::FxHashMap;
 use std::{convert::TryFrom, str::FromStr};
 
@@ -215,6 +216,40 @@ impl TryFrom<&[String]> for QuantumGame {
             players: [players[0], players[1]],
             ..QuantumGame::default()
         })
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Games {
+    deterministic: Game<DeterministicDie>,
+    quantum: QuantumGame,
+}
+
+impl TryFrom<Vec<String>> for Games {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self> {
+        Ok(Self {
+            deterministic: Game::try_from(value.as_ref())?,
+            quantum: QuantumGame::try_from(value.as_ref())?,
+        })
+    }
+}
+
+impl Solver for Games {
+    const ID: &'static str = "dirac dice";
+    const DAY: usize = 21;
+
+    type P1 = usize;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        let mut g = self.deterministic.clone();
+        g.play().expect("unable to play game")
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.quantum.play()
     }
 }
 

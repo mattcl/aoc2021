@@ -3,7 +3,10 @@ use std::convert::{TryFrom, TryInto};
 use anyhow::{anyhow, Result};
 use rustc_hash::FxHashSet;
 
-use aoc_helpers::generic::{prelude::*, Grid, Location};
+use aoc_helpers::{
+    generic::{prelude::*, Grid, Location},
+    Solver,
+};
 
 #[derive(Debug, Clone, Copy, Default, Hash, Eq, PartialEq)]
 pub struct Octopus(pub i64);
@@ -162,6 +165,34 @@ impl TryFrom<Vec<String>> for OctopusGrid {
             syncd_genrations: Vec::new(),
             generations: 0,
         })
+    }
+}
+
+impl Solver for OctopusGrid {
+    const ID: &'static str = "dumbo octopus";
+    const DAY: usize = 11;
+
+    type P1 = usize;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        let mut g = self.clone();
+        g.simulate(100)
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        let mut g = self.clone();
+        g.simulate_until_sync()
+    }
+
+    // this is separate because we can pick up where we left off for part
+    // two when solving these together
+    fn solve() -> aoc_helpers::Solution<Self::P1, Self::P2> {
+        let mut instance = Self::instance();
+        let p1 = instance.simulate(100);
+        let p2 = instance.simulate_until_sync();
+
+        aoc_helpers::Solution::new(p1, p2)
     }
 }
 

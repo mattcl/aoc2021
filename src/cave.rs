@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 
 use anyhow::{anyhow, Result};
+use aoc_helpers::Solver;
 use rayon::prelude::*;
 use rustc_hash::{FxHashMap, FxHashSet};
 
@@ -232,6 +233,22 @@ impl TryFrom<Vec<String>> for CaveSystem {
         }
 
         Ok(cs)
+    }
+}
+
+impl Solver for CaveSystem {
+    const ID: &'static str = "passage pathing";
+    const DAY: usize = 12;
+
+    type P1 = usize;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.paths_fast(false).expect("could not find paths")
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.paths_semi_par(true).expect("could not find paths")
     }
 }
 

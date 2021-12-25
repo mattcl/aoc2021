@@ -1,6 +1,7 @@
 use std::{convert::TryFrom, iter::FromIterator, ops::Deref, str::FromStr};
 
 use anyhow::{anyhow, bail, Result};
+use aoc_helpers::Solver;
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 
@@ -269,11 +270,11 @@ impl FromStr for Observation {
 }
 
 #[derive(Debug, Clone)]
-pub struct Solver {
+pub struct Matcher {
     observations: Vec<Observation>,
 }
 
-impl Solver {
+impl Matcher {
     pub fn new(observations: Vec<Observation>) -> Self {
         Self { observations }
     }
@@ -303,16 +304,32 @@ impl Solver {
     }
 }
 
-impl TryFrom<Vec<String>> for Solver {
+impl TryFrom<Vec<String>> for Matcher {
     type Error = anyhow::Error;
 
     fn try_from(value: Vec<String>) -> Result<Self> {
-        Ok(Solver::new(
+        Ok(Matcher::new(
             value
                 .iter()
                 .map(|s| Observation::from_str(s))
                 .collect::<Result<Vec<Observation>>>()?,
         ))
+    }
+}
+
+impl Solver for Matcher {
+    const ID: &'static str = "seven segment search";
+    const DAY: usize = 8;
+
+    type P1 = usize;
+    type P2 = u64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.rhs_count_known()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.rhs_values_sum().expect("unable to find solution")
     }
 }
 
@@ -396,7 +413,7 @@ mod tests {
                 gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
                 ");
 
-            let solver = Solver::try_from(input).expect("Could not parse input");
+            let solver = Matcher::try_from(input).expect("Could not parse input");
 
             assert_eq!(solver.rhs_count_known(), 26)
         }
@@ -416,7 +433,7 @@ mod tests {
                 gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
                 ");
 
-            let solver = Solver::try_from(input).expect("Could not parse input");
+            let solver = Matcher::try_from(input).expect("Could not parse input");
             let res = solver.rhs_values_sum().expect("Could not solve");
             assert_eq!(res, 61229);
 

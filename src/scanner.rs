@@ -1,4 +1,5 @@
 use anyhow::{anyhow, bail, Result};
+use aoc_helpers::Solver;
 use itertools::Itertools;
 use rayon::prelude::*;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -424,6 +425,28 @@ impl TryFrom<Vec<String>> for Mapper {
             .map(Scanner::try_from)
             .collect::<Result<Vec<Scanner>>>()?;
         Ok(Self { scanners })
+    }
+}
+
+impl Solver for Mapper {
+    const ID: &'static str = "beacon scanner";
+    const DAY: usize = 19;
+
+    type P1 = usize;
+    type P2 = i64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        let mut beacons = FxHashSet::default();
+        self.correlate(&mut beacons);
+        beacons.len()
+    }
+
+    // in this case, we expect part_two to always be called after part 1,
+    // as it relies on a correlation, so we have to use the combined
+    // variant of the bench macro
+    fn part_two(&mut self) -> Self::P2 {
+        self.largest_distance()
+            .expect("could not find largest distance")
     }
 }
 

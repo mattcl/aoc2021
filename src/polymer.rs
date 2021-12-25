@@ -1,6 +1,7 @@
 use std::{convert::TryFrom, str::FromStr};
 
 use anyhow::{anyhow, bail, Result};
+use aoc_helpers::Solver;
 use itertools::{Itertools, MinMaxResult};
 use rustc_hash::FxHashMap;
 
@@ -154,17 +155,18 @@ impl Polymerizer {
     pub fn iterations_fast(&self, num: usize) -> usize {
         let mut rule_counts: FxHashMap<[char; 2], usize> = FxHashMap::default();
         let mut counts = [0_usize; 26];
+        let a = 'A' as usize;
 
-        for ch in self.formula.0.chars() {
-            counts[ch as usize - 'A' as usize] += 1;
-        }
+        let chars = self.formula.0.chars().collect::<Vec<_>>();
+        let last = chars[chars.len() - 1] as usize - a;
+        counts[last] += 1;
 
-        for (begin, end) in self.formula.0.chars().tuple_windows() {
+        for (begin, end) in chars.into_iter().tuple_windows() {
             let e = rule_counts.entry([begin, end]).or_default();
             *e += 1;
         }
 
-        for _ in 1..num {
+        for _ in 0..num {
             let mut new: FxHashMap<[char; 2], usize> = FxHashMap::default();
             for (k, v) in rule_counts.iter() {
                 if let Some(rule) = self.rules.get(k) {
@@ -173,18 +175,14 @@ impl Polymerizer {
 
                     let e = new.entry(rule.right).or_default();
                     *e += v;
-
-                    if let Some(right) = self.rules.get(&rule.right) {
-                        counts[right.insertion_value] += v;
-                    }
-
-                    if let Some(left) = self.rules.get(&rule.left) {
-                        counts[left.insertion_value] += v;
-                    }
                 }
             }
 
             rule_counts = new;
+        }
+
+        for (k, v) in rule_counts.iter() {
+            counts[k[0] as usize - a] += v;
         }
 
         match counts.iter().filter(|v| **v > 0).minmax() {
@@ -210,6 +208,22 @@ impl TryFrom<Vec<String>> for Polymerizer {
         let rules = Rules::try_from(parts.collect::<Vec<String>>())?;
 
         Ok(Self { formula, rules })
+    }
+}
+
+impl Solver for Polymerizer {
+    const ID: &'static str = "extended polymerization";
+    const DAY: usize = 14;
+
+    type P1 = usize;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.iterations_fast(10)
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.iterations_fast(40)
     }
 }
 
@@ -248,6 +262,35 @@ mod tests {
             let p = Polymerizer::try_from(input).expect("could not parse input");
             assert_eq!(p.iterations(10), 1588);
             assert_eq!(p.iterations_fast(10), 1588);
+        }
+
+        #[test]
+        fn comparison() {
+            let input = test_input(
+                "
+                NNCBC
+
+                CH -> B
+                HH -> N
+                CB -> H
+                NH -> C
+                HB -> C
+                HC -> B
+                HN -> C
+                NN -> C
+                BH -> H
+                NC -> B
+                NB -> B
+                BN -> B
+                BB -> N
+                BC -> B
+                CC -> N
+                CN -> C
+                ",
+            );
+
+            let p = Polymerizer::try_from(input).expect("could not parse input");
+            assert_eq!(p.iterations(10), p.iterations_fast(10));
         }
     }
 }

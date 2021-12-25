@@ -1,6 +1,7 @@
-use std::str::FromStr;
+use std::{convert::TryFrom, str::FromStr};
 
 use anyhow::Result;
+use aoc_helpers::{parse_input, Solver};
 use itertools::Itertools;
 
 // So, yeah... I'm not going to apologize for doing this
@@ -169,6 +170,39 @@ impl Program {
 impl From<Vec<Line>> for Program {
     fn from(value: Vec<Line>) -> Self {
         Program::new(value)
+    }
+}
+
+impl TryFrom<Vec<String>> for Program {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self> {
+        let lines = parse_input(&value)?;
+        Ok(Self::from(lines))
+    }
+}
+
+impl Solver for Program {
+    const ID: &'static str = "syntax scoring";
+    const DAY: usize = 10;
+
+    type P1 = i64;
+    type P2 = i64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.check().score_corruptions()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.check().score_completions()
+    }
+
+    // need to override this for combined solution because of the intermediate
+    // check result
+    fn solve() -> aoc_helpers::Solution<Self::P1, Self::P2> {
+        let instance = Self::instance();
+        let check = instance.check();
+        aoc_helpers::Solution::new(check.score_corruptions(), check.score_completions())
     }
 }
 

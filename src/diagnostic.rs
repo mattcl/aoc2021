@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 
 use anyhow::{bail, Result};
+use aoc_helpers::Solver;
 
 #[derive(Debug, Clone, Default)]
 pub struct Diagnostic {
@@ -110,14 +111,62 @@ impl TryFrom<&Vec<String>> for Diagnostic {
         let mut parsed_values = Vec::new();
         for num in value {
             if num.len() != num_bits {
-                bail!("Not all diagnositc values are the same length {:?}", value);
+                bail!("Not all diagnositc values are the same length {:?}", &value);
             }
 
-            let parsed = u64::from_str_radix(num, 2)?;
+            let parsed = u64::from_str_radix(&num, 2)?;
             parsed_values.push(parsed);
         }
 
         Ok(Diagnostic::new(num_bits, parsed_values))
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct DiagnosticWrapper {
+    input: Vec<String>,
+}
+
+impl TryFrom<Vec<String>> for DiagnosticWrapper {
+    type Error = anyhow::Error;
+
+    fn try_from(input: Vec<String>) -> Result<Self> {
+        Ok(Self {input})
+    }
+}
+
+impl Solver for DiagnosticWrapper {
+    const ID: &'static str = "binary diagnostic";
+    const DAY: usize = 3;
+
+    type P1 = u64;
+    type P2 = u64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        let d = Diagnostic::try_from(&self.input)
+            .expect("could not parse input");
+        d.power_consumption()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        let d = Diagnostic::try_from(&self.input)
+            .expect("could not parse input");
+        d.life_support_rating()
+            .expect("could not get life support rating")
+    }
+
+    // so the solve for this is a little different, because it's really
+    // the construction of the diagnostic that does most of the work
+    fn solve() -> aoc_helpers::Solution<Self::P1, Self::P2> {
+        let instance = Self::instance();
+        let d = Diagnostic::try_from(&instance.input)
+            .expect("could not parse input");
+
+        aoc_helpers::Solution::new(
+            d.power_consumption(),
+            d.life_support_rating()
+                .expect("could not get life support rating")
+        )
     }
 }
 

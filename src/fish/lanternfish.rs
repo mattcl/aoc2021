@@ -1,5 +1,7 @@
-use std::{num::ParseIntError, str::FromStr};
+use std::{convert::TryFrom, num::ParseIntError, str::FromStr};
 
+use anyhow::{anyhow, Result};
+use aoc_helpers::Solver;
 use rustc_hash::FxHashMap;
 
 const SPAWN_INTERVAL: i64 = 7;
@@ -121,6 +123,32 @@ impl FromStr for Sim {
                 .map(|p| p.parse())
                 .collect::<std::result::Result<Vec<Lanternfish>, ParseIntError>>()?,
         ))
+    }
+}
+
+impl TryFrom<Vec<String>> for Sim {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self> {
+        Ok(Self::from_str(
+            value.first().ok_or_else(|| anyhow!("input empty"))?,
+        )?)
+    }
+}
+
+impl Solver for Sim {
+    const ID: &'static str = "lanternfish";
+    const DAY: usize = 6;
+
+    type P1 = usize;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.fast_population_after(80)
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.fast_population_after(256)
     }
 }
 

@@ -3,6 +3,7 @@ use std::str::FromStr;
 use std::{cmp::Ordering, convert::TryFrom};
 
 use anyhow::{anyhow, bail, Result};
+use aoc_helpers::Solver;
 use rayon::prelude::*;
 use rustc_hash::FxHashMap;
 
@@ -159,10 +160,10 @@ impl Vents {
     }
 }
 
-impl TryFrom<&Vec<String>> for Vents {
+impl TryFrom<Vec<String>> for Vents {
     type Error = anyhow::Error;
 
-    fn try_from(input: &Vec<String>) -> Result<Self> {
+    fn try_from(input: Vec<String>) -> Result<Self> {
         let lines = input
             .par_iter()
             .map(|l| Line::from_str(l))
@@ -176,6 +177,33 @@ impl TryFrom<&Vec<String>> for Vents {
             .collect::<Result<Vec<Line>>>()?;
 
         Ok(Vents::new(lines))
+    }
+}
+
+impl Solver for Vents {
+    const ID: &'static str = "hydrothermal vents";
+    const DAY: usize = 5;
+
+    type P1 = usize;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.prune_diagonal();
+        self.count_multi_overlap()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.count_multi_overlap()
+    }
+
+    // this needs to happen separately because we need to calculate
+    // the part 2 solution prior to the part 1 solution
+    fn solve() -> aoc_helpers::Solution<Self::P1, Self::P2> {
+        let mut instance = Self::instance();
+        let part2 = instance.count_multi_overlap();
+        instance.prune_diagonal();
+
+        aoc_helpers::Solution::new(instance.count_multi_overlap(), part2)
     }
 }
 
@@ -283,7 +311,7 @@ mod tests {
                 5,5 -> 8,2
                 ",
             );
-            let mut grid = Vents::try_from(&input).expect("Could not construct grid");
+            let mut grid = Vents::try_from(input).expect("Could not construct grid");
             grid.prune_unmappable();
             grid.prune_diagonal();
             assert_eq!(grid.count_multi_overlap(), 5);
@@ -305,7 +333,7 @@ mod tests {
                 5,5 -> 8,2
                 ",
             );
-            let mut grid = Vents::try_from(&input).expect("Could not construct grid");
+            let mut grid = Vents::try_from(input).expect("Could not construct grid");
             grid.prune_unmappable();
             assert_eq!(grid.count_multi_overlap(), 12);
         }

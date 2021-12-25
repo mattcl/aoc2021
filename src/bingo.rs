@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::{convert::TryFrom, iter::FromIterator, num::ParseIntError, str::FromStr};
 
 use anyhow::{anyhow, bail, Result};
+use aoc_helpers::Solver;
 use rayon::prelude::*;
 
 #[derive(Debug, Clone, Default)]
@@ -380,6 +381,24 @@ impl TryFrom<Vec<String>> for Runner<FastBoard> {
             .collect::<Result<Vec<FastBoard>>>()?;
 
         Ok(Runner { sequence, boards })
+    }
+}
+
+impl Solver for Runner<FastBoard> {
+    const ID: &'static str = "giant squid";
+    const DAY: usize = 4;
+
+    type P1 = i64;
+    type P2 = i64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        let mut g = self.clone();
+        g.play().expect("could not find a winner")
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        let mut g = self.clone();
+        *g.play_all().last().expect("could not find last winner")
     }
 }
 

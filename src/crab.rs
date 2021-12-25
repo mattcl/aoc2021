@@ -1,5 +1,7 @@
-use std::{hash::Hash, num::ParseIntError, str::FromStr};
+use std::{convert::TryFrom, hash::Hash, num::ParseIntError, str::FromStr};
 
+use anyhow::{anyhow, Result};
+use aoc_helpers::Solver;
 use itertools::{Itertools, MinMaxResult};
 use rayon::prelude::*;
 
@@ -99,6 +101,39 @@ where
                 .map(T::from_str)
                 .collect::<Result<Vec<T>, <T as FromStr>::Err>>()?,
         })
+    }
+}
+
+pub struct Crabs {
+    linear: Swarm<LinearSub>,
+    arithmetic: Swarm<ArithmeticSub>,
+}
+
+impl TryFrom<Vec<String>> for Crabs {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self> {
+        let line = value.first().ok_or_else(|| anyhow!("input empty"))?;
+        let linear = Swarm::from_str(line)?;
+        let arithmetic = Swarm::from_str(line)?;
+
+        Ok(Self { linear, arithmetic })
+    }
+}
+
+impl Solver for Crabs {
+    const ID: &'static str = "the treachery of whales";
+    const DAY: usize = 7;
+
+    type P1 = i64;
+    type P2 = i64;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.linear.cheapest_expenditure()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.arithmetic.cheapest_expenditure()
     }
 }
 

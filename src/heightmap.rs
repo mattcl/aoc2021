@@ -7,7 +7,10 @@ use anyhow::{anyhow, bail, Result};
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 
-use aoc_helpers::generic::{prelude::*, Grid, Location};
+use aoc_helpers::{
+    generic::{prelude::*, Grid, Location},
+    Solver,
+};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Basin {
@@ -163,6 +166,23 @@ impl TryFrom<Vec<String>> for HeightMap {
             .collect::<Result<Vec<Vec<Risk>>>>()?;
 
         Ok(Self(locations.try_into()?))
+    }
+}
+
+impl Solver for HeightMap {
+    const ID: &'static str = "smoke basin";
+    const DAY: usize = 9;
+
+    type P1 = i64;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.total_risk()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        self.largest_basins()
+            .expect("could not find largest basins")
     }
 }
 

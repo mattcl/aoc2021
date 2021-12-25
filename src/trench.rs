@@ -5,6 +5,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Result};
+use aoc_helpers::Solver;
 use itertools::Itertools;
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
@@ -293,6 +294,33 @@ impl TryFrom<Vec<String>> for Enhancer {
         let image = Image::try_from(parts.next().ok_or_else(|| anyhow!("Input too short"))?)?;
 
         Ok(Self { algorithm, image })
+    }
+}
+
+impl Solver for Enhancer {
+    const ID: &'static str = "trench map";
+    const DAY: usize = 20;
+
+    type P1 = usize;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        let mut e = self.clone();
+        e.enhance_times(2).num_lit()
+    }
+
+    // this cannot be called after part 1 because they mutate state
+    fn part_two(&mut self) -> Self::P2 {
+        let mut e = self.clone();
+        e.enhance_times(50).num_lit()
+    }
+
+    // instead, just make the combined solve take this into account
+    fn solve() -> aoc_helpers::Solution<Self::P1, Self::P2> {
+        let mut instance = Self::instance();
+        let two = instance.enhance_times(2).num_lit();
+        let fifty = instance.enhance_times(48).num_lit();
+        aoc_helpers::Solution::new(two, fifty)
     }
 }
 

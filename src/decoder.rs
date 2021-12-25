@@ -1,6 +1,7 @@
 use std::{convert::TryFrom, fmt, num::ParseIntError, str::FromStr};
 
 use anyhow::{anyhow, bail, Result};
+use aoc_helpers::Solver;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take},
@@ -218,6 +219,58 @@ impl FromStr for Transmission {
         // we have to do this because of the lifetime on the value from the parser
         let (_, packets) = (many1(packet)(&s)).map_err(|_| anyhow!("Failed to parse input"))?;
         Ok(Self { packets })
+    }
+}
+
+impl TryFrom<&Vec<String>> for Transmission {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &Vec<String>) -> Result<Self> {
+        Self::from_str(value.first().ok_or_else(|| anyhow!("input is empty!"))?)
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct TransmissionWrapper {
+    input: Vec<String>
+}
+
+impl TryFrom<Vec<String>> for TransmissionWrapper {
+    type Error = anyhow::Error;
+
+    fn try_from(input: Vec<String>) -> Result<Self> {
+        Ok(Self {input})
+    }
+}
+
+impl Solver for TransmissionWrapper {
+    const ID: &'static str = "packet decoder";
+    const DAY: usize = 16;
+
+    type P1 = usize;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        let t = Transmission::try_from(&self.input)
+            .expect("could not parse transmission");
+        t.version_sum()
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        let t = Transmission::try_from(&self.input)
+            .expect("could not parse transmission");
+        t.value()
+    }
+
+    fn solve() -> aoc_helpers::Solution<Self::P1, Self::P2> {
+        let instance = Self::instance();
+        let t = Transmission::try_from(&instance.input)
+            .expect("could not parse transmission");
+
+        aoc_helpers::Solution::new(
+            t.version_sum(),
+            t.value()
+        )
     }
 }
 

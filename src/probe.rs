@@ -1,4 +1,5 @@
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
+use aoc_helpers::Solver;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Target {
@@ -26,7 +27,7 @@ impl Target {
     }
 }
 
-use std::{num::ParseIntError, str::FromStr};
+use std::{convert::TryFrom, num::ParseIntError, str::FromStr};
 
 impl FromStr for Target {
     type Err = anyhow::Error;
@@ -123,7 +124,9 @@ impl Probe {
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-pub struct Launcher;
+pub struct Launcher {
+    target: Target,
+}
 
 impl Launcher {
     pub fn launch(&self, target: &Target) -> (i64, usize) {
@@ -196,6 +199,44 @@ impl Launcher {
     }
 }
 
+impl TryFrom<Vec<String>> for Launcher {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self> {
+        let target = Target::from_str(value.first().ok_or_else(|| anyhow!("input is empty!"))?)?;
+
+        Ok(Self { target })
+    }
+}
+
+impl Solver for Launcher {
+    const ID: &'static str = "trick shot";
+    const DAY: usize = 17;
+
+    type P1 = i64;
+    type P2 = usize;
+
+    fn part_one(&mut self) -> Self::P1 {
+        self.launch(&self.target).0
+    }
+
+    fn part_two(&mut self) -> Self::P2 {
+        // this is a no-op, since we technically solved by the first
+        // .launch(). but, the way the macro for generating benchmarks
+        // works for combined solutions is to run part_one then part_two
+        0
+    }
+
+    // this is another case where the part 1 and part 2 solutions are
+    // solved at the same time, but in this case we have to generate
+    // the total solution separately
+    fn solve() -> aoc_helpers::Solution<Self::P1, Self::P2> {
+        let instance = Self::instance();
+        let (highest, distinct) = instance.launch(&instance.target);
+        aoc_helpers::Solution::new(highest, distinct)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -203,7 +244,7 @@ mod tests {
     #[test]
     fn example() {
         let target = Target::new(20, 30, -10, -5);
-        let l = Launcher {};
+        let l = Launcher { target };
         let (highest, num) = l.launch(&target);
         assert_eq!(highest, 45);
         assert_eq!(num, 112);

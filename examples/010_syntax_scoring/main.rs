@@ -1,13 +1,6 @@
 use aoc::navigation::Program;
-use aoc_helpers::{load_input, parse_input, Solution};
+use aoc_helpers::Solver;
 
 fn main() {
-    let input = load_input("010").expect("could not load input");
-    let program = Program::from(parse_input(&input).expect("could not parse input"));
-    let check = program.check();
-
-    println!(
-        "{}",
-        Solution::new(check.score_corruptions(), check.score_completions())
-    );
+    println!("{}", Program::solve());
 }

@@ -1,19 +1,6 @@
-use std::str::FromStr;
-
-use aoc::decoder::Transmission;
-use aoc_helpers::{load_input, Solution};
+use aoc::decoder::TransmissionWrapper;
+use aoc_helpers::Solver;
 
 fn main() {
-    let line = load_input("016")
-        .expect("could not load input")
-        .first()
-        .cloned()
-        .expect("input was empty");
-
-    let transmission = Transmission::from_str(&line).expect("could not parse input");
-
-    println!(
-        "{}",
-        Solution::new(transmission.version_sum(), transmission.value(),)
-    );
+    println!("{}", TransmissionWrapper::solve());
 }

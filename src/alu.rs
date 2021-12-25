@@ -305,7 +305,7 @@ impl Solver for Computer {
 
 #[cfg(test)]
 mod tests {
-    use aoc_helpers::{load_input, util::test_input};
+    use aoc_helpers::util::test_input;
 
     use super::*;
 
