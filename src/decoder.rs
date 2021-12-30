@@ -1,7 +1,8 @@
-use std::{convert::TryFrom, fmt, num::ParseIntError, str::FromStr};
+use std::{convert::TryFrom, fmt, iter::FromIterator, num::ParseIntError, str::FromStr};
 
 use anyhow::{anyhow, bail, Result};
 use aoc_helpers::Solver;
+use itertools::Itertools;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take},
@@ -172,6 +173,52 @@ impl Packet {
         }
         sum
     }
+
+    pub fn pretty(&self, verbose: bool) -> String {
+        self.pretty_r(0, verbose)
+    }
+
+    fn pretty_r(&self, depth: usize, verbose: bool) -> String {
+        if verbose {
+            let indent = String::from_iter((0..(depth * 4)).map(|_| ' '));
+            match self.type_id {
+                PacketType::Literal(v) => format!("{}[v: {}, lit: {}]", indent, self.version, v),
+                PacketType::Operator {
+                    code, ref packets, ..
+                } => {
+                    let mut base = format!(
+                        "{}[v: {}, ({} sub-packets) op: {}\n",
+                        indent,
+                        self.version,
+                        packets.len(),
+                        code
+                    );
+                    base += &packets
+                        .iter()
+                        .map(|p| p.pretty_r(depth + 1, verbose))
+                        .join("\n");
+                    base += "]";
+                    base
+                }
+            }
+        } else {
+            let indent = String::from_iter((0..(depth * 2)).map(|_| ' '));
+            match self.type_id {
+                PacketType::Literal(v) => format!("{}[{}]", indent, v),
+                PacketType::Operator {
+                    code, ref packets, ..
+                } => {
+                    let mut base = format!("{}[ {}\n", indent, code);
+                    base += &packets
+                        .iter()
+                        .map(|p| p.pretty_r(depth + 1, verbose))
+                        .join("\n");
+                    base += "]";
+                    base
+                }
+            }
+        }
+    }
 }
 
 impl fmt::Display for Packet {
@@ -263,6 +310,10 @@ impl Solver for TransmissionWrapper {
     fn solve() -> aoc_helpers::Solution<Self::P1, Self::P2> {
         let instance = Self::instance();
         let t = Transmission::try_from(&instance.input).expect("could not parse transmission");
+
+        // for packet in t.packets.iter() {
+        //     println!("{}", packet.pretty(true));
+        // }
 
         aoc_helpers::Solution::new(t.version_sum(), t.value())
     }

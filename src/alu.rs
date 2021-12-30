@@ -323,7 +323,8 @@ impl PrecompiledSolver {
             if a == 1 {
                 stack.push((i, c));
             } else {
-                let (j, c) = stack.pop()
+                let (j, c) = stack
+                    .pop()
                     .ok_or_else(|| anyhow!("attempted to pop empty stack!"))?;
 
                 digits[i] = digits[j] + b + c;
@@ -342,7 +343,8 @@ impl PrecompiledSolver {
     }
 
     pub fn extract_vars(&self, block_idx: usize) -> Result<(i64, i64, i64)> {
-        let block = self.blocks
+        let block = self
+            .blocks
             .get(block_idx)
             .ok_or_else(|| anyhow!("no block {}", block_idx))?;
         let mut vars = (0, 0, 0);
@@ -397,7 +399,7 @@ impl TryFrom<Vec<String>> for PrecompiledSolver {
             bail!("incorrect number of blocks from input {}", blocks.len());
         }
 
-        Ok(Self {blocks})
+        Ok(Self { blocks })
     }
 }
 
@@ -410,12 +412,14 @@ impl Solver for PrecompiledSolver {
 
     fn part_one(&mut self) -> Self::P1 {
         let mut digits = [9_i64; 14];
-        self.solve_digits(&mut digits).expect("could not solve program")
+        self.solve_digits(&mut digits)
+            .expect("could not solve program")
     }
 
     fn part_two(&mut self) -> Self::P1 {
         let mut digits = [1_i64; 14];
-        self.solve_digits(&mut digits).expect("could not solve program")
+        self.solve_digits(&mut digits)
+            .expect("could not solve program")
     }
 }
 

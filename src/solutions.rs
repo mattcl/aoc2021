@@ -215,10 +215,10 @@ mod tests {
 
     #[test]
     #[ignore]
-     fn day_024() {
-         let expected = Solution::new(29599469991739, 17153114691118);
-         assert_eq!(PrecompiledSolver::solve(), expected);
-     }
+    fn day_024() {
+        let expected = Solution::new(29599469991739, 17153114691118);
+        assert_eq!(PrecompiledSolver::solve(), expected);
+    }
 
     #[test]
     #[ignore]
