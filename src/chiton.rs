@@ -1,5 +1,4 @@
 use std::{
-    collections::BinaryHeap,
     convert::{TryFrom, TryInto},
     ops::Deref,
 };
@@ -7,7 +6,11 @@ use std::{
 use anyhow::{anyhow, Result};
 
 use aoc_helpers::{
-    generic::{prelude::*, Grid, Location},
+    generic::{
+        pathing::{dijkstra_cost, DEdge, DefaultLocationCache},
+        prelude::*,
+        Grid, Location,
+    },
     Solver,
 };
 
@@ -61,49 +64,27 @@ impl Deref for ChitonGrid {
 
 impl ChitonGrid {
     pub fn shortest(&self, scale: usize, start: &Location, end: &Location) -> Option<usize> {
-        let size = (self.rows() * scale) * (self.cols() * scale);
-        let largest = size * 9;
-        let mut lowest = vec![largest; size];
+        let mut cache: DefaultLocationCache<usize> =
+            DefaultLocationCache::new(self.size() * scale * scale, self.rows() * scale);
 
-        let s_idx = start.as_rm_index(self.rows() * scale);
-        let e_idx = end.as_rm_index(self.rows() * scale);
-
-        let mut heap = BinaryHeap::new();
-        heap.push(Node::new(s_idx, 0, start.manhattan_dist(end)));
-        lowest[s_idx] = 0;
-
-        while let Some(cur) = heap.pop() {
-            if cur.idx == e_idx {
-                return Some(cur.cost);
-            }
-
-            if cur.cost > lowest[cur.idx] {
-                continue;
-            }
-
-            let loc = Location::from_rm_index(cur.idx, self.rows() * scale);
-
-            for n in loc.orthogonal_neighbors() {
-                if let Some(chiton) = self.get_scaled(&n, scale, |chiton, r_fac, c_fac| {
+        dijkstra_cost(*start, *end, &mut cache, |loc| {
+            // so this is a little weird, but we actually have much better
+            // performance pre-allocating then extending. I would rather return
+            // an iterator from the closure, but existential types, not really
+            // a thing in that regard yet.
+            let mut edges = Vec::with_capacity(4);
+            edges.extend(loc.orthogonal_neighbors().filter_map(|n| {
+                self.get_scaled(&n, scale, |chiton, r_fac, c_fac| {
                     let mut v = chiton.0 + r_fac + c_fac;
                     if v > 9 {
                         v = v % 10 + 1;
                     }
                     Chiton(v)
-                }) {
-                    let n_idx = n.as_rm_index(self.rows() * scale);
-                    let base = cur.cost + chiton.0;
-                    let next = Node::new(n_idx, base, base + n.manhattan_dist(end));
-
-                    if next.cost < lowest[next.idx] {
-                        lowest[next.idx] = next.cost;
-                        heap.push(next);
-                    }
-                }
-            }
-        }
-
-        None
+                })
+                .map(|cost| DEdge::new(n, cost.0))
+            }));
+            edges
+        })
     }
 }
 
