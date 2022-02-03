@@ -145,10 +145,9 @@ impl Launcher {
                     probe.vy = vy;
 
                     let mut t = t_min;
-                    // find first t where x is in the target in the target
-                    // sim until x pos is in target
+                    // find first t where x is in the target
+                    // sim until x pos is in target or beyond it
                     let contained = loop {
-                        // we know this is guaranteed to happen because of min_x
                         let x = probe.xt(t);
                         if target.contains((x, target.y_min)) {
                             break true;
@@ -162,8 +161,8 @@ impl Launcher {
 
                     if !contained {
                         // we couldn't actually get a valid x position for any t,
-                        // so continue
-                        continue;
+                        // so no point in looking at additional y values
+                        break;
                     }
 
                     // adjust t to the time the probe would be crossing the zero
