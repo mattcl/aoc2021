@@ -9,7 +9,7 @@ description = "Advent of code, 2021"
 
 [dependencies]
 anyhow = "1"
-aoc_helpers = { git = "https://github.com/mattcl/aoc-helpers" }
+aoc_helpers = { git = "https://github.com/mattcl/aoc-helpers", rev = "2121be4b04b0052936409ccd9967c2f7000e36e6" }
 auto_ops = "0.3.0"
 itertools = "0.10"
 nom = { version = "7.1", features = ["alloc"] }
